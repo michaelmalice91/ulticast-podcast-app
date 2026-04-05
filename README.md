@@ -14,6 +14,10 @@ A Flutter-based podcast player for Android with persistent playback, smart episo
 - **Dark Mode**: Toggle between light and dark themes
 - **Interruption Handling**: Respects system interruptions (calls, other audio apps) and resumes intelligently
 
+### TODO
+
+- Add search bar to search for any text in episode title or description
+
 ## Building & Installation
 
 ### Requirements
