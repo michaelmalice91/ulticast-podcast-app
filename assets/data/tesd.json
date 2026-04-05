@@ -1,0 +1,2808 @@
+{
+    "TESD": [
+        {
+            "title": "#001: Josh Groban Stole My Mom!",
+            "date": "2010-02-21 00:00:00"
+        },
+        {
+            "title": "#002: Et tu, Fanboy?",
+            "date": "2010-03-04 00:00:00"
+        },
+        {
+            "title": "#003: An Affair to Forget",
+            "date": "2010-03-11 00:00:00"
+        },
+        {
+            "title": "#004: Keeping Up with Consuelos",
+            "date": "2010-03-19 00:00:00"
+        },
+        {
+            "title": "#005: You Passed My Stop, Guys!",
+            "date": "2010-03-26 00:00:00"
+        },
+        {
+            "title": "#006: The Courtship of Jeff",
+            "date": "2010-04-02 00:00:00"
+        },
+        {
+            "title": "#007: 'Board' of Education",
+            "date": "2010-04-09 00:00:00"
+        },
+        {
+            "title": "#008: 'Party' in the USA Part 1",
+            "date": "2010-04-16 00:00:00"
+        },
+        {
+            "title": "#009: 'Party' in the USA Part 2",
+            "date": "2010-04-23 00:00:00"
+        },
+        {
+            "title": "#010: Prison Bryves",
+            "date": "2010-04-30 00:00:00"
+        },
+        {
+            "title": "#011: Thou Shalt Not Sell False Doobies",
+            "date": "2010-05-06 00:00:00"
+        },
+        {
+            "title": "#012: Makin' Hay",
+            "date": "2010-05-14 00:00:00"
+        },
+        {
+            "title": "#013: Makin' Hay II - Banned in Iraq",
+            "date": "2010-05-21 00:00:00"
+        },
+        {
+            "title": "#014: Then a Hero Comes Along",
+            "date": "2010-05-28 00:00:00"
+        },
+        {
+            "title": "#015: I Think I'll Go Eat Worms!",
+            "date": "2010-06-04 00:00:00"
+        },
+        {
+            "title": "#016: Flanagan's List - Live from Brantford",
+            "date": "2010-06-11 00:00:00"
+        },
+        {
+            "title": "#017: Grandma Welcome Home",
+            "date": "2010-06-17 00:00:00"
+        },
+        {
+            "title": "#018: Gorilla in the Hizz",
+            "date": "2010-06-25 00:00:00"
+        },
+        {
+            "title": "#019: For Those About to Rock",
+            "date": "2010-07-02 00:00:00"
+        },
+        {
+            "title": "#020: Shure to Displease",
+            "date": "2010-07-08 00:00:00"
+        },
+        {
+            "title": "#021: The Uninvited",
+            "date": "2010-07-16 00:00:00"
+        },
+        {
+            "title": "#022: The Uninvited Part II",
+            "date": "2010-07-23 00:00:00"
+        },
+        {
+            "title": "#023: Live from the Hollywood Improv",
+            "date": "2010-07-30 00:00:00"
+        },
+        {
+            "title": "#024: Prima Nocta",
+            "date": "2010-08-06 00:00:00"
+        },
+        {
+            "title": "#025: We're Baaaaack",
+            "date": "2010-08-13 00:00:00"
+        },
+        {
+            "title": "#026: Lt. Dan vs. El Jefe",
+            "date": "2010-08-20 00:00:00"
+        },
+        {
+            "title": "#027: Houston, We Have a Problem - Part 1",
+            "date": "2010-08-27 00:00:00"
+        },
+        {
+            "title": "#028: Houston, We Have a Problem - Part 2",
+            "date": "2010-09-04 00:00:00"
+        },
+        {
+            "title": "#029: Houston, We're F'd",
+            "date": "2010-09-10 00:00:00"
+        },
+        {
+            "title": "#030: Peace & Love",
+            "date": "2010-09-17 00:00:00"
+        },
+        {
+            "title": "#031: C'est La Vie",
+            "date": "2010-09-24 00:00:00"
+        },
+        {
+            "title": "#032: I Wanna Be Your Tampon",
+            "date": "2010-10-01 00:00:00"
+        },
+        {
+            "title": "#033: Live from Las Cruces",
+            "date": "2010-10-08 00:00:00"
+        },
+        {
+            "title": "#033.5: Walt Goes Postal",
+            "date": "2010-10-14 00:00:00"
+        },
+        {
+            "title": "#034: Happy's Dead",
+            "date": "2010-10-15 00:00:00"
+        },
+        {
+            "title": "#035: Chilean Out",
+            "date": "2010-10-22 00:00:00"
+        },
+        {
+            "title": "#036: Night of 1000 Stars",
+            "date": "2010-10-29 00:00:00"
+        },
+        {
+            "title": "#037: Cap'n Longnuts",
+            "date": "2010-11-05 00:00:00"
+        },
+        {
+            "title": "#038: Sissy Sox",
+            "date": "2010-11-12 00:00:00"
+        },
+        {
+            "title": "#039: Please Stand By",
+            "date": "2010-11-18 00:00:00"
+        },
+        {
+            "title": "#040: Bri Said, Ry Said",
+            "date": "2010-11-26 00:00:00"
+        },
+        {
+            "title": "#041: The Senator Must Die",
+            "date": "2010-12-02 00:00:00"
+        },
+        {
+            "title": "#042: Joseph, No!",
+            "date": "2010-12-10 00:00:00"
+        },
+        {
+            "title": "#043: The Unkindest Cut",
+            "date": "2010-12-16 00:00:00"
+        },
+        {
+            "title": "#044: It's Out There!",
+            "date": "2010-12-23 00:00:00"
+        },
+        {
+            "title": "#045: Dallas Live",
+            "date": "2010-12-31 00:00:00"
+        },
+        {
+            "title": "#046: Spin Dem Plates",
+            "date": "2011-01-06 00:00:00"
+        },
+        {
+            "title": "#047: Rats 'n Cats",
+            "date": "2011-01-14 00:00:00"
+        },
+        {
+            "title": "#048: Sharktopus & Small Town Livin'",
+            "date": "2011-01-20 00:00:00"
+        },
+        {
+            "title": "#049: Somebody Get Me a Doctor!",
+            "date": "2011-02-03 00:00:00"
+        },
+        {
+            "title": "#050: Just Move it a Little!",
+            "date": "2011-02-10 00:00:00"
+        },
+        {
+            "title": "#051: Mad as a March Hare Ming",
+            "date": "2011-02-18 00:00:00"
+        },
+        {
+            "title": "#052: Fibber McChen",
+            "date": "2011-03-04 00:00:00"
+        },
+        {
+            "title": "#053: Fibber McChen Part II",
+            "date": "2011-03-10 00:00:00"
+        },
+        {
+            "title": "#054: Fibber McChen Part III - The Awakening",
+            "date": "2011-03-18 00:00:00"
+        },
+        {
+            "title": "#055: F.U. Andrea Canning!",
+            "date": "2011-03-25 00:00:00"
+        },
+        {
+            "title": "#056: F.U. Victoria Jackson",
+            "date": "2011-03-31 00:00:00"
+        },
+        {
+            "title": "#057: A Pox in Sue",
+            "date": "2011-04-07 00:00:00"
+        },
+        {
+            "title": "#058: The Bank of Tears",
+            "date": "2011-04-14 00:00:00"
+        },
+        {
+            "title": "#059: Right Said Ming",
+            "date": "2011-04-28 00:00:00"
+        },
+        {
+            "title": "#060: Ding Dong Bin Laden's Dead!",
+            "date": "2011-05-06 00:00:00"
+        },
+        {
+            "title": "#061: Rappin' with the Dead",
+            "date": "2011-05-13 00:00:00"
+        },
+        {
+            "title": "#062: Welcome to the Machine",
+            "date": "2011-05-20 00:00:00"
+        },
+        {
+            "title": "#063: The Heretic",
+            "date": "2011-05-27 00:00:00"
+        },
+        {
+            "title": "#064: Two is the Loneliest Number",
+            "date": "2011-06-03 00:00:00"
+        },
+        {
+            "title": "#065: The Celebrated Return of Mr. F",
+            "date": "2011-06-10 00:00:00"
+        },
+        {
+            "title": "#066: Issue Zero",
+            "date": "2011-06-17 00:00:00"
+        },
+        {
+            "title": "#067: The Horse Wackerer",
+            "date": "2011-06-24 00:00:00"
+        },
+        {
+            "title": "#068: Shower Power",
+            "date": "2011-07-01 00:00:00"
+        },
+        {
+            "title": "#069: Paris 'Herpes' Hilton",
+            "date": "2011-07-08 00:00:00"
+        },
+        {
+            "title": "#070: Makin' Hay II: Hell Awaits",
+            "date": "2011-07-15 00:00:00"
+        },
+        {
+            "title": "#071: Makin' Hay II: The 5th Circle",
+            "date": "2011-07-22 00:00:00"
+        },
+        {
+            "title": "#072: Makin' Hay II: The Final Exit",
+            "date": "2011-07-29 00:00:00"
+        },
+        {
+            "title": "#073: It's Just Thong",
+            "date": "2011-08-05 00:00:00"
+        },
+        {
+            "title": "#074: Skeletoes",
+            "date": "2011-08-12 00:00:00"
+        },
+        {
+            "title": "#075: Australian Buttocks Soup",
+            "date": "2011-08-19 00:00:00"
+        },
+        {
+            "title": "#076: Ministers of Truth",
+            "date": "2011-08-26 00:00:00"
+        },
+        {
+            "title": "#077: Puppety for a Penis",
+            "date": "2011-09-02 00:00:00"
+        },
+        {
+            "title": "#078: Wallywood Squares",
+            "date": "2011-09-09 00:00:00"
+        },
+        {
+            "title": "#079: Wait, We Leave Tomorrow?",
+            "date": "2011-09-16 00:00:00"
+        },
+        {
+            "title": "#080: Diddle, Diddle",
+            "date": "2011-09-23 00:00:00"
+        },
+        {
+            "title": "#081: San Francisco Treat",
+            "date": "2011-09-30 00:00:00"
+        },
+        {
+            "title": "#082: Bry Falls Ill",
+            "date": "2011-10-07 00:00:00"
+        },
+        {
+            "title": "#083: Stay Classy, Demi",
+            "date": "2011-10-14 00:00:00"
+        },
+        {
+            "title": "#084: Douche of Douches",
+            "date": "2011-10-21 00:00:00"
+        },
+        {
+            "title": "#085: The TESD Halloween Spooktacular",
+            "date": "2011-10-28 00:00:00"
+        },
+        {
+            "title": "#086: Kardashian Mayonnaise Puss",
+            "date": "2011-11-04 00:00:00"
+        },
+        {
+            "title": "#087: Top of the Ant Hill",
+            "date": "2011-11-11 00:00:00"
+        },
+        {
+            "title": "#088: Boss's Day",
+            "date": "2011-11-18 00:00:00"
+        },
+        {
+            "title": "#089: Don't Judge Me, Bro!",
+            "date": "2011-11-25 00:00:00"
+        },
+        {
+            "title": "#090: Lily-Livered Marsupial Stew",
+            "date": "2011-12-02 00:00:00"
+        },
+        {
+            "title": "#091: Cindy's Fuck Truck",
+            "date": "2011-12-09 00:00:00"
+        },
+        {
+            "title": "#092: Stompin' on a Dream",
+            "date": "2011-12-16 00:00:00"
+        },
+        {
+            "title": "#093: Merry F'n Christmas",
+            "date": "2011-12-23 00:00:00"
+        },
+        {
+            "title": "#094: Aboriginal Fever",
+            "date": "2011-12-30 00:00:00"
+        },
+        {
+            "title": "#095: Potato Chip Bry",
+            "date": "2012-01-06 00:00:00"
+        },
+        {
+            "title": "#096: He Man Woman Haters Club",
+            "date": "2012-01-13 00:00:00"
+        },
+        {
+            "title": "#097: Nothing Comes Between Me and My Dickies",
+            "date": "2012-01-19 00:00:00"
+        },
+        {
+            "title": "#098: Sming, Smike and the Smabulous Smodding Smachine",
+            "date": "2012-02-03 00:00:00"
+        },
+        {
+            "title": "#099: The Hijacking of Smod 99",
+            "date": "2012-02-10 00:00:00"
+        },
+        {
+            "title": "#099.5: Git 'em BQ",
+            "date": "2012-02-10 00:00:00"
+        },
+        {
+            "title": "#100: Rock 'n Roll Farmer",
+            "date": "2012-02-16 00:00:00"
+        },
+        {
+            "title": "#101: Two Deviants and a Dolt",
+            "date": "2012-02-24 00:00:00"
+        },
+        {
+            "title": "#102: Wild Wild West",
+            "date": "2012-03-09 00:00:00"
+        },
+        {
+            "title": "#103: Come One, Come All!",
+            "date": "2012-03-16 00:00:00"
+        },
+        {
+            "title": "#104: Wiener's Circle",
+            "date": "2012-03-23 00:00:00"
+        },
+        {
+            "title": "#105: Bop, Bop , 'n Rebop",
+            "date": "2012-03-30 00:00:00"
+        },
+        {
+            "title": "#106: Space Monkeys - Mosier and Vulcano",
+            "date": "2012-04-06 00:00:00"
+        },
+        {
+            "title": "#107: Weiner's, Bikinis, and Sweaty Men in Tights",
+            "date": "2012-04-19 00:00:00"
+        },
+        {
+            "title": "#108: Bottle Dump",
+            "date": "2012-04-27 00:00:00"
+        },
+        {
+            "title": "#109: Dead Baby Pellets",
+            "date": "2012-05-10 00:00:00"
+        },
+        {
+            "title": "#110: Which End is up?",
+            "date": "2012-05-17 00:00:00"
+        },
+        {
+            "title": "#111: Firebugs & Bedwetters",
+            "date": "2012-05-25 00:00:00"
+        },
+        {
+            "title": "#112: Chrono-Vision",
+            "date": "2012-06-07 00:00:00"
+        },
+        {
+            "title": "#113: What Mafia?",
+            "date": "2012-06-14 00:00:00"
+        },
+        {
+            "title": "#114: Wizzy in a Tizzy",
+            "date": "2012-06-21 00:00:00"
+        },
+        {
+            "title": "#115: Horny in the Pants",
+            "date": "2012-06-28 00:00:00"
+        },
+        {
+            "title": "#116: Tales from the Chocolate Fountain",
+            "date": "2012-07-05 00:00:00"
+        },
+        {
+            "title": "#117: Q the Cuddle Bear",
+            "date": "2012-07-12 00:00:00"
+        },
+        {
+            "title": "#118: Big Bry and the Inhumanoids",
+            "date": "2012-07-19 00:00:00"
+        },
+        {
+            "title": "#119: The Purloined Penis",
+            "date": "2012-07-26 00:00:00"
+        },
+        {
+            "title": "#120: Double-O Q and the Honey Boo Boo",
+            "date": "2012-08-11 00:00:00"
+        },
+        {
+            "title": "#121: Love on the Rocks",
+            "date": "2012-08-18 00:00:00"
+        },
+        {
+            "title": "#122: The Ming & Ming Show",
+            "date": "2012-08-24 00:00:00"
+        },
+        {
+            "title": "#123: Briefcase Wankers",
+            "date": "2012-09-07 00:00:00"
+        },
+        {
+            "title": "#124: Osama Bin Flanagan",
+            "date": "2012-09-21 00:00:00"
+        },
+        {
+            "title": "#125: From the Dumpster, a Hero",
+            "date": "2012-09-27 00:00:00"
+        },
+        {
+            "title": "#126: A Moat of Horse Clumps",
+            "date": "2012-10-06 00:00:00"
+        },
+        {
+            "title": "#127: Unflushable",
+            "date": "2012-10-18 00:00:00"
+        },
+        {
+            "title": "#128: Tell 'Em Puck Nuts",
+            "date": "2012-10-25 00:00:00"
+        },
+        {
+            "title": "#129: The Transient Life",
+            "date": "2012-11-08 00:00:00"
+        },
+        {
+            "title": "#130: Life is Pain",
+            "date": "2012-11-15 00:00:00"
+        },
+        {
+            "title": "#131: Fowl Balls",
+            "date": "2012-11-22 00:00:00"
+        },
+        {
+            "title": "#132: Kickin' it Softly",
+            "date": "2012-12-01 00:00:00"
+        },
+        {
+            "title": "#133: Silver Alert",
+            "date": "2012-12-06 00:00:00"
+        },
+        {
+            "title": "#134: Space Monkeys Style",
+            "date": "2012-12-13 00:00:00"
+        },
+        {
+            "title": "#135: Flanpig",
+            "date": "2013-01-03 00:00:00"
+        },
+        {
+            "title": "#136: Kidz 'R Tampons",
+            "date": "2013-01-10 00:00:00"
+        },
+        {
+            "title": "#136.5: Don't Call Me Mustache, Krampus",
+            "date": "2013-01-14 00:00:00"
+        },
+        {
+            "title": "#137: Velvet Patella",
+            "date": "2013-01-17 00:00:00"
+        },
+        {
+            "title": "#138: My Sweet Satan",
+            "date": "2013-01-28 00:00:00"
+        },
+        {
+            "title": "#139: Boy's Night Out",
+            "date": "2013-01-31 00:00:00"
+        },
+        {
+            "title": "#140: Fliss Special",
+            "date": "2013-02-08 00:00:00"
+        },
+        {
+            "title": "#141: The Nameless Ghouls",
+            "date": "2013-02-14 00:00:00"
+        },
+        {
+            "title": "#142: Volume II, Issue Zero, Epi\u2026Ehh Fuck it!",
+            "date": "2013-02-21 00:00:00"
+        },
+        {
+            "title": "#143: \u2026And on the 7th Day, God Listened to TESD",
+            "date": "2013-02-28 00:00:00"
+        },
+        {
+            "title": "#144: Fancy a Hairbrush?",
+            "date": "2013-03-07 00:00:00"
+        },
+        {
+            "title": "#145: Q the Warlord",
+            "date": "2013-03-21 00:00:00"
+        },
+        {
+            "title": "#146: TESD's Roots",
+            "date": "2013-03-29 00:00:00"
+        },
+        {
+            "title": "#147: Ming the Eunuch",
+            "date": "2013-04-04 00:00:00"
+        },
+        {
+            "title": "#148: Power Down",
+            "date": "2013-04-13 00:00:00"
+        },
+        {
+            "title": "#149: Tales from the Stash",
+            "date": "2013-04-19 00:00:00"
+        },
+        {
+            "title": "#150: \u2026And on the 8th Day, God Cancelled I Sell Comics",
+            "date": "2013-04-26 00:00:00"
+        },
+        {
+            "title": "#151: The Marriage of Pussholio",
+            "date": "2013-05-03 00:00:00"
+        },
+        {
+            "title": "#152: Respect My Money",
+            "date": "2013-05-09 00:00:00"
+        },
+        {
+            "title": "#153: Mountain Man Fever",
+            "date": "2013-05-16 00:00:00"
+        },
+        {
+            "title": "#154: Olympic Sellouts",
+            "date": "2013-05-23 00:00:00"
+        },
+        {
+            "title": "#155: Bitchface",
+            "date": "2013-05-30 00:00:00"
+        },
+        {
+            "title": "#156: Boxcar Bry's Ultimate Milkshake Party",
+            "date": "2013-06-06 00:00:00"
+        },
+        {
+            "title": "#157: Let the Games Begin",
+            "date": "2013-06-13 00:00:00"
+        },
+        {
+            "title": "#158: Do You Believe in Miracles?",
+            "date": "2013-06-20 00:00:00"
+        },
+        {
+            "title": "#159: Bitchfest 2013",
+            "date": "2013-06-27 00:00:00"
+        },
+        {
+            "title": "#160: Supercon Men",
+            "date": "2013-07-13 00:00:00"
+        },
+        {
+            "title": "#161: Scooter Dude 4-Eva",
+            "date": "2013-07-18 00:00:00"
+        },
+        {
+            "title": "#162: FIVE A$$HOLES?!?!",
+            "date": "2013-07-26 00:00:00"
+        },
+        {
+            "title": "#163: In Beanies We Trust",
+            "date": "2013-07-31 00:00:00"
+        },
+        {
+            "title": "#164: B-Hole",
+            "date": "2013-08-08 00:00:00"
+        },
+        {
+            "title": "#165: Shitmouth",
+            "date": "2013-08-17 00:00:00"
+        },
+        {
+            "title": "#166: Aidsquito",
+            "date": "2013-08-22 00:00:00"
+        },
+        {
+            "title": "#167: Pet-O-Philes",
+            "date": "2013-09-01 00:00:00"
+        },
+        {
+            "title": "#168: A Tale of Ewww, Titties",
+            "date": "2013-09-05 00:00:00"
+        },
+        {
+            "title": "#169: Happy, Happy, Joy, Joy",
+            "date": "2013-09-20 00:00:00"
+        },
+        {
+            "title": "#170: What Say You?: The Pilot Episode",
+            "date": "2013-09-30 00:00:00"
+        },
+        {
+            "title": "#171: Love at the Y",
+            "date": "2013-10-03 00:00:00"
+        },
+        {
+            "title": "#172: Fatty, Fatty, Frat Boy",
+            "date": "2013-10-10 00:00:00"
+        },
+        {
+            "title": "#173: Would You Like a Corn Muffin?",
+            "date": "2013-10-17 00:00:00"
+        },
+        {
+            "title": "#174: The 2013 TESD Halloween Spookshow",
+            "date": "2013-10-24 00:00:00"
+        },
+        {
+            "title": "#175: Anna Rexia",
+            "date": "2013-10-31 00:00:00"
+        },
+        {
+            "title": "#176: Goat's Head Soup",
+            "date": "2013-11-08 00:00:00"
+        },
+        {
+            "title": "#177: Electric Ukulele",
+            "date": "2013-11-14 00:00:00"
+        },
+        {
+            "title": "#178: Free Black Pete!",
+            "date": "2013-11-21 00:00:00"
+        },
+        {
+            "title": "#179: Baby Come Back",
+            "date": "2013-11-30 00:00:00"
+        },
+        {
+            "title": "#180: The Tranny Trick",
+            "date": "2013-12-08 00:00:00"
+        },
+        {
+            "title": "#181: The Tranny Trick II: The Trickening",
+            "date": "2013-12-12 00:00:00"
+        },
+        {
+            "title": "#182: The Podcast That Loved Too Much",
+            "date": "2013-12-19 00:00:00"
+        },
+        {
+            "title": "#183: The Podcast That Hated Too Little",
+            "date": "2013-12-26 00:00:00"
+        },
+        {
+            "title": "#184: Year of the Touchy Pusshole",
+            "date": "2014-01-03 00:00:00"
+        },
+        {
+            "title": "#185: The Spaghetti O's Agenda",
+            "date": "2014-01-09 00:00:00"
+        },
+        {
+            "title": "#186: The Death of an Ant Part 1",
+            "date": "2014-01-29 00:00:00"
+        },
+        {
+            "title": "#187: The Death of an Ant Part 2",
+            "date": "2014-01-30 00:00:00"
+        },
+        {
+            "title": "#188: Diarrhea Corn",
+            "date": "2014-02-06 00:00:00"
+        },
+        {
+            "title": "#189: Hittin' the \"T\" Spot",
+            "date": "2014-02-13 00:00:00"
+        },
+        {
+            "title": "#190: Bore-Fest 2014",
+            "date": "2014-02-20 00:00:00"
+        },
+        {
+            "title": "#191: The Ministers of Truth, Pt. 2",
+            "date": "2014-02-28 00:00:00"
+        },
+        {
+            "title": "#192: Ratchet Ho",
+            "date": "2014-03-07 00:00:00"
+        },
+        {
+            "title": "#193: Heil Honey",
+            "date": "2014-03-13 00:00:00"
+        },
+        {
+            "title": "#194: MegaCon Men",
+            "date": "2014-04-01 00:00:00"
+        },
+        {
+            "title": "#195: The Disappearance of Episode One Ninety Four",
+            "date": "2014-04-04 00:00:00"
+        },
+        {
+            "title": "#196: Q Does the Right Thing\u2026Kinda",
+            "date": "2014-04-10 00:00:00"
+        },
+        {
+            "title": "#197: Turkey, Turkey, and Turkey",
+            "date": "2014-04-16 00:00:00"
+        },
+        {
+            "title": "#198: @Bit-O-Honey",
+            "date": "2014-04-25 00:00:00"
+        },
+        {
+            "title": "#199: They's Ig'nant!",
+            "date": "2014-05-01 00:00:00"
+        },
+        {
+            "title": "#200: The Bicentennial Battle",
+            "date": "2014-05-09 00:00:00"
+        },
+        {
+            "title": "#201: The Staten Island Unicorn",
+            "date": "2014-05-15 00:00:00"
+        },
+        {
+            "title": "#202: Retarded Ejaculation",
+            "date": "2014-05-24 00:00:00"
+        },
+        {
+            "title": "#203: The Sunday Jeff Show",
+            "date": "2014-05-30 00:00:00"
+        },
+        {
+            "title": "#204: The All-New Bank of Tears",
+            "date": "2014-06-06 00:00:00"
+        },
+        {
+            "title": "#205: Meatball No More",
+            "date": "2014-06-20 00:00:00"
+        },
+        {
+            "title": "#206: The Road Not Taken",
+            "date": "2014-06-20 00:00:00"
+        },
+        {
+            "title": "#207: Daz Boyz Arez Backz inz Townz",
+            "date": "2014-06-28 00:00:00"
+        },
+        {
+            "title": "#208: Moon Fever",
+            "date": "2014-07-04 00:00:00"
+        },
+        {
+            "title": "#209: Pusstown U.S.A.",
+            "date": "2014-07-13 00:00:00"
+        },
+        {
+            "title": "#210: Sweet Dreams",
+            "date": "2014-07-17 00:00:00"
+        },
+        {
+            "title": "#211: Shady Acres",
+            "date": "2014-07-24 00:00:00"
+        },
+        {
+            "title": "#212: P-Doggy, Puppies and Puzzling Investments",
+            "date": "2014-08-09 00:00:00"
+        },
+        {
+            "title": "#213: The Red-Headed Step Child is on Life Support",
+            "date": "2014-08-15 00:00:00"
+        },
+        {
+            "title": "#214: The Magnifying Glass",
+            "date": "2014-08-24 00:00:00"
+        },
+        {
+            "title": "#215: The Cuckoo Lady",
+            "date": "2014-09-08 00:00:00"
+        },
+        {
+            "title": "#216: Born a Rock, Die a Rock",
+            "date": "2014-09-09 00:00:00"
+        },
+        {
+            "title": "#217: Pork Chop Aftermath",
+            "date": "2014-09-19 00:00:00"
+        },
+        {
+            "title": "#218: Poof Bomb",
+            "date": "2014-09-25 00:00:00"
+        },
+        {
+            "title": "#219: Infect Me, Walt!",
+            "date": "2014-10-03 00:00:00"
+        },
+        {
+            "title": "#220: Who Wears Short-Shorts?",
+            "date": "2014-10-11 00:00:00"
+        },
+        {
+            "title": "#221: Q-AGE",
+            "date": "2014-10-16 00:00:00"
+        },
+        {
+            "title": "#222: Tit Cake",
+            "date": "2014-10-26 00:00:00"
+        },
+        {
+            "title": "#223: The TESD Halloween Spooktacular 2014",
+            "date": "2014-10-30 00:00:00"
+        },
+        {
+            "title": "#224: Fire John Izdik",
+            "date": "2014-11-08 00:00:00"
+        },
+        {
+            "title": "#225: Keeping Up with the Mansons",
+            "date": "2014-11-24 00:00:00"
+        },
+        {
+            "title": "#226: Heaven Can Wait",
+            "date": "2014-11-26 00:00:00"
+        },
+        {
+            "title": "#227: When Pigs Cry",
+            "date": "2014-12-05 00:00:00"
+        },
+        {
+            "title": "#228: Heav-Ant Can Wait",
+            "date": "2014-12-16 00:00:00"
+        },
+        {
+            "title": "#229: Motor Dick",
+            "date": "2014-12-31 00:00:00"
+        },
+        {
+            "title": "#230: Motor Dick Part 2",
+            "date": "2015-01-07 00:00:00"
+        },
+        {
+            "title": "#231: TESD is the Shark",
+            "date": "2015-01-12 00:00:00"
+        },
+        {
+            "title": "#232: Pride Before Pillows",
+            "date": "2015-01-15 00:00:00"
+        },
+        {
+            "title": "#233: In Your Face, Chenard",
+            "date": "2015-01-23 00:00:00"
+        },
+        {
+            "title": "#234: Doink Johnson",
+            "date": "2015-02-06 00:00:00"
+        },
+        {
+            "title": "#235: Callback Jizzfest",
+            "date": "2015-02-23 00:00:00"
+        },
+        {
+            "title": "#236: MUB",
+            "date": "2015-02-27 00:00:00"
+        },
+        {
+            "title": "#237: Tears of the Weeping Ant, Chris \"Ghost Pussy\" Laudando",
+            "date": "2015-03-07 00:00:00"
+        },
+        {
+            "title": "#238: Under Penalty",
+            "date": "2015-03-13 00:00:00"
+        },
+        {
+            "title": "#239: Tear Down Those Quotes",
+            "date": "2015-03-19 00:00:00"
+        },
+        {
+            "title": "#240: Illegal Briefs",
+            "date": "2015-03-29 00:00:00"
+        },
+        {
+            "title": "#241: Generation Selfie",
+            "date": "2015-04-02 00:00:00"
+        },
+        {
+            "title": "#242: Yaga Hogi",
+            "date": "2015-04-11 00:00:00"
+        },
+        {
+            "title": "#243: Brian Quinn: Time Gigolo",
+            "date": "2015-04-18 00:00:00"
+        },
+        {
+            "title": "#244: Fear of a TESD Planet",
+            "date": "2015-04-25 00:00:00"
+        },
+        {
+            "title": "#245: Uncle Q Wants You!",
+            "date": "2015-05-07 00:00:00"
+        },
+        {
+            "title": "#246: Murder, Least Foul, in Tell 'em Steve-Dave Town",
+            "date": "2015-05-14 00:00:00"
+        },
+        {
+            "title": "#247: Bitchin 'n Moanin",
+            "date": "2015-05-24 00:00:00"
+        },
+        {
+            "title": "#248: Q's Grand Day",
+            "date": "2015-06-03 00:00:00"
+        },
+        {
+            "title": "#249: Skinny, Thin and Slim",
+            "date": "2015-06-05 00:00:00"
+        },
+        {
+            "title": "#250: Schramy! Schramy! What Has Become of You?",
+            "date": "2015-06-15 00:00:00"
+        },
+        {
+            "title": "#251: The Peyton Manning of Podding",
+            "date": "2015-06-25 00:00:00"
+        },
+        {
+            "title": "#252: Apple of Death",
+            "date": "2015-07-18 00:00:00"
+        },
+        {
+            "title": "#253: White Tears",
+            "date": "2015-07-24 00:00:00"
+        },
+        {
+            "title": "#254: Living and Dying in a Bubble",
+            "date": "2015-07-30 00:00:00"
+        },
+        {
+            "title": "#255: Back in the Basement",
+            "date": "2015-08-13 00:00:00"
+        },
+        {
+            "title": "#256: Bry the Defiler",
+            "date": "2015-08-24 00:00:00"
+        },
+        {
+            "title": "#257: And on the Seventh Day, Jeff Rested",
+            "date": "2015-08-28 00:00:00"
+        },
+        {
+            "title": "#258: Man on Whire",
+            "date": "2015-09-06 00:00:00"
+        },
+        {
+            "title": "#259: Q The Romantic Cowboy",
+            "date": "2015-09-12 00:00:00"
+        },
+        {
+            "title": "#260: Flesh Prison",
+            "date": "2015-09-20 00:00:00"
+        },
+        {
+            "title": "#261: The Sunday Jeff Show II",
+            "date": "2015-09-26 00:00:00"
+        },
+        {
+            "title": "#262: Hospital Hijinx",
+            "date": "2015-10-03 00:00:00"
+        },
+        {
+            "title": "#263: Let me have it mang",
+            "date": "2015-10-08 00:00:00"
+        },
+        {
+            "title": "#264: The Blue Juice Comics 1 True 3 Invitational Part 1",
+            "date": "2015-10-23 00:00:00"
+        },
+        {
+            "title": "#265: The Blue Juice Comics 1 True 3 Invitational Part 2",
+            "date": "2015-10-31 00:00:00"
+        },
+        {
+            "title": "#266: Emperor Flanagan",
+            "date": "2015-11-06 00:00:00"
+        },
+        {
+            "title": "#266.5: Sunday Jeff is coming to town",
+            "date": "2015-11-13 00:00:00"
+        },
+        {
+            "title": "#267: The Three Horsemen",
+            "date": "2015-11-24 00:00:00"
+        },
+        {
+            "title": "#268: Make a Wish (again)",
+            "date": "2015-11-25 00:00:00"
+        },
+        {
+            "title": "#269: Teflon 4 Life",
+            "date": "2015-12-11 00:00:00"
+        },
+        {
+            "title": "#270: Red and Yellow, Black and White",
+            "date": "2015-12-17 00:00:00"
+        },
+        {
+            "title": "#271: Q in a Quandary",
+            "date": "2015-12-24 00:00:00"
+        },
+        {
+            "title": "#272: Tick, Tock",
+            "date": "2015-12-30 00:00:00"
+        },
+        {
+            "title": "#273: The Man Who Saw Tomorrow (The Quinn Who Saw Tomorrow)",
+            "date": "2016-01-07 00:00:00"
+        },
+        {
+            "title": "#274: Quinn Plus 8",
+            "date": "2016-01-14 00:00:00"
+        },
+        {
+            "title": "#275: Quinn Returns to Port",
+            "date": "2016-01-21 00:00:00"
+        },
+        {
+            "title": "#276: Brian Quinn is on this Podcast",
+            "date": "2016-01-28 00:00:00"
+        },
+        {
+            "title": "#277: Brian Quinn",
+            "date": "2016-02-04 00:00:00"
+        },
+        {
+            "title": "#278: Brian Quinn Goes Cruisin'",
+            "date": "2016-02-11 00:00:00"
+        },
+        {
+            "title": "#279: Brian Quinn Has the Sniffles",
+            "date": "2016-02-20 00:00:00"
+        },
+        {
+            "title": "#280: Petting the Invisible Dog",
+            "date": "2016-02-29 00:00:00"
+        },
+        {
+            "title": "#281: Dis Nut",
+            "date": "2016-03-04 00:00:00"
+        },
+        {
+            "title": "#282: The Super Q-man Test",
+            "date": "2016-03-11 00:00:00"
+        },
+        {
+            "title": "#283: Stoolburger in Paradise",
+            "date": "2016-03-25 00:00:00"
+        },
+        {
+            "title": "#284: The Stoolening Two: God\u2019s Anus",
+            "date": "2016-03-31 00:00:00"
+        },
+        {
+            "title": "#285: They're Trying To Scare You, Crow!",
+            "date": "2016-04-09 00:00:00"
+        },
+        {
+            "title": "#286: Here Come The Firepigs",
+            "date": "2016-04-15 00:00:00"
+        },
+        {
+            "title": "#287: Gangsta' Gangsta'",
+            "date": "2016-04-22 00:00:00"
+        },
+        {
+            "title": "#288: Bat Boy Lives",
+            "date": "2016-04-29 00:00:00"
+        },
+        {
+            "title": "#288.5: Marco Yoho",
+            "date": "2016-05-12 00:00:00"
+        },
+        {
+            "title": "#290: Demerit Badge",
+            "date": "2016-05-22 00:00:00"
+        },
+        {
+            "title": "#291: What's Behind the Green, Red, Blue and Yelluh Door?",
+            "date": "2016-05-28 00:00:00"
+        },
+        {
+            "title": "#292: Gorilla Plums",
+            "date": "2016-06-09 00:00:00"
+        },
+        {
+            "title": "#293: Who's Your Daddy?",
+            "date": "2016-06-19 00:00:00"
+        },
+        {
+            "title": "#294: Tuesday Q",
+            "date": "2016-06-26 00:00:00"
+        },
+        {
+            "title": "#295: I'll fly when I\u2019m dead",
+            "date": "2016-07-01 00:00:00"
+        },
+        {
+            "title": "#296: The Bry Who Saw Tomorrow",
+            "date": "2016-07-08 00:00:00"
+        },
+        {
+            "title": "#297: Pops Johnson",
+            "date": "2016-07-12 00:00:00"
+        },
+        {
+            "title": "#298: Angel Taxidermy",
+            "date": "2016-07-30 00:00:00"
+        },
+        {
+            "title": "#299: Walking Over Hot Coals To 300",
+            "date": "2016-08-05 00:00:00"
+        },
+        {
+            "title": "#300: Git 'Em to the Chapel",
+            "date": "2016-08-12 00:00:00"
+        },
+        {
+            "title": "#301: Chocolate Clocks",
+            "date": "2016-08-28 00:00:00"
+        },
+        {
+            "title": "#302: evaD evetS me' lleT",
+            "date": "2016-09-03 00:00:00"
+        },
+        {
+            "title": "#303: Polaroid from Dimension Z",
+            "date": "2016-09-10 00:00:00"
+        },
+        {
+            "title": "#304: It's Porn Dog!",
+            "date": "2016-09-15 00:00:00"
+        },
+        {
+            "title": "#305: Batches of Patches",
+            "date": "2016-09-23 00:00:00"
+        },
+        {
+            "title": "#306: #Funeralz",
+            "date": "2016-09-29 00:00:00"
+        },
+        {
+            "title": "#307: BQ+BM=TLF",
+            "date": "2016-10-15 00:00:00"
+        },
+        {
+            "title": "#308: The 2016 Overdose Full Special",
+            "date": "2016-10-23 00:00:00"
+        },
+        {
+            "title": "#309: Tampons 'n Mini Sombreros",
+            "date": "2016-10-28 00:00:00"
+        },
+        {
+            "title": "#310: Woke FlanaSkinOnSkin",
+            "date": "2016-11-03 00:00:00"
+        },
+        {
+            "title": "#311: Peepin' N Creepin'",
+            "date": "2016-11-13 00:00:00"
+        },
+        {
+            "title": "#312: Tan & Poisoned",
+            "date": "2016-11-19 00:00:00"
+        },
+        {
+            "title": "#313: 4th and Down",
+            "date": "2016-11-27 00:00:00"
+        },
+        {
+            "title": "#314: Impressing the Prof",
+            "date": "2016-12-04 00:00:00"
+        },
+        {
+            "title": "#315: Woe is Q",
+            "date": "2016-12-10 00:00:00"
+        },
+        {
+            "title": "#316: Grasshead",
+            "date": "2016-12-18 00:00:00"
+        },
+        {
+            "title": "#317: This is Why!",
+            "date": "2016-12-24 00:00:00"
+        },
+        {
+            "title": "#318: Q'z Brewz",
+            "date": "2016-12-31 00:00:00"
+        },
+        {
+            "title": "#319: Nostradummies",
+            "date": "2017-01-10 00:00:00"
+        },
+        {
+            "title": "#320: Hey, hey we're the Jokers!",
+            "date": "2017-01-13 00:00:00"
+        },
+        {
+            "title": "#321: Slip 'n Slide Orgy",
+            "date": "2017-01-21 00:00:00"
+        },
+        {
+            "title": "#322: My Cousin Quinny Part I",
+            "date": "2017-01-30 00:00:00"
+        },
+        {
+            "title": "#323: My Cousin Quinny Part II",
+            "date": "2017-02-05 00:00:00"
+        },
+        {
+            "title": "#324: The Verdict",
+            "date": "2017-02-11 00:00:00"
+        },
+        {
+            "title": "#325: Ignorance is Holy",
+            "date": "2017-02-20 00:00:00"
+        },
+        {
+            "title": "#326: The Atomic Lantern of Love",
+            "date": "2017-02-27 00:00:00"
+        },
+        {
+            "title": "#327: The Human Corn",
+            "date": "2017-03-06 00:00:00"
+        },
+        {
+            "title": "#328: Take a Blow",
+            "date": "2017-03-11 00:00:00"
+        },
+        {
+            "title": "#329: Log Box",
+            "date": "2017-03-18 00:00:00"
+        },
+        {
+            "title": "#330: Try the Veal",
+            "date": "2017-03-25 00:00:00"
+        },
+        {
+            "title": "#331: Is there a Doctor in the house?",
+            "date": "2017-04-07 00:00:00"
+        },
+        {
+            "title": "#332: Bloody good time",
+            "date": "2017-04-19 00:00:00"
+        },
+        {
+            "title": "#333: Sunday Jeffosauraus",
+            "date": "2017-04-25 00:00:00"
+        },
+        {
+            "title": "#334: Shave and a Haircut",
+            "date": "2017-04-28 00:00:00"
+        },
+        {
+            "title": "#335: Prince Q",
+            "date": "2017-05-05 00:00:00"
+        },
+        {
+            "title": "#336: Mushken",
+            "date": "2017-05-14 00:00:00"
+        },
+        {
+            "title": "#337: Kwigleeuh",
+            "date": "2017-05-25 00:00:00"
+        },
+        {
+            "title": "#338: Fevered Morphine Dreams",
+            "date": "2017-06-01 00:00:00"
+        },
+        {
+            "title": "#339: Flanny Got Fingered",
+            "date": "2017-06-10 00:00:00"
+        },
+        {
+            "title": "#340: Love Warrior",
+            "date": "2017-06-16 00:00:00"
+        },
+        {
+            "title": "#341: Ghost Puss",
+            "date": "2017-06-24 00:00:00"
+        },
+        {
+            "title": "#342: The Rebranding of Baron Von Flanagan",
+            "date": "2017-07-04 00:00:00"
+        },
+        {
+            "title": "#343: Meet the Progressives",
+            "date": "2017-07-08 00:00:00"
+        },
+        {
+            "title": "#344: Ann Landahs",
+            "date": "2017-07-17 00:00:00"
+        },
+        {
+            "title": "#345: #NOTOKAY",
+            "date": "2017-08-01 00:00:00"
+        },
+        {
+            "title": "#346: Granny Comfort",
+            "date": "2017-08-05 00:00:00"
+        },
+        {
+            "title": "#347: Git'em the Hell Outta Here",
+            "date": "2017-08-19 00:00:00"
+        },
+        {
+            "title": "#348: Time Commander in Chief",
+            "date": "2017-08-30 00:00:00"
+        },
+        {
+            "title": "#349: Down Mexico Way",
+            "date": "2017-09-10 00:00:00"
+        },
+        {
+            "title": "#350: I am the Patriarchy",
+            "date": "2017-09-19 00:00:00"
+        },
+        {
+            "title": "#351: NO MANGO",
+            "date": "2017-09-23 00:00:00"
+        },
+        {
+            "title": "#352: LEGO Babies",
+            "date": "2017-09-30 00:00:00"
+        },
+        {
+            "title": "#353: The Gun Show",
+            "date": "2017-10-07 00:00:00"
+        },
+        {
+            "title": "#354: Overbites Matter",
+            "date": "2017-10-21 00:00:00"
+        },
+        {
+            "title": "#355: The 2017 Overdose Full Special",
+            "date": "2017-10-31 00:00:00"
+        },
+        {
+            "title": "#356: Better Late Than Never",
+            "date": "2017-11-10 00:00:00"
+        },
+        {
+            "title": "#357: Kenan and Q",
+            "date": "2017-11-21 00:00:00"
+        },
+        {
+            "title": "#358: F*ck the trees!",
+            "date": "2017-12-02 00:00:00"
+        },
+        {
+            "title": "#359: Blue Ballz 4 Kidz",
+            "date": "2017-12-15 00:00:00"
+        },
+        {
+            "title": "#360: Happy Hamburger",
+            "date": "2017-12-21 00:00:00"
+        },
+        {
+            "title": "#361: Git 'Em Dies at the End",
+            "date": "2018-01-09 00:00:00"
+        },
+        {
+            "title": "#362: Keepin\u2019 it rawz & keepin\u2019 it realz",
+            "date": "2018-01-15 00:00:00"
+        },
+        {
+            "title": "#363: Kweeping up with the Kwinns",
+            "date": "2018-01-20 00:00:00"
+        },
+        {
+            "title": "#364: Himam\u0101nav",
+            "date": "2018-02-02 00:00:00"
+        },
+        {
+            "title": "#365: Nobody\u2019s Goat",
+            "date": "2018-02-14 00:00:00"
+        },
+        {
+            "title": "#366: The Woods of Defecation",
+            "date": "2018-03-11 00:00:00"
+        },
+        {
+            "title": "#367: Beside Flanagan",
+            "date": "2018-03-17 00:00:00"
+        },
+        {
+            "title": "#368: King Me!",
+            "date": "2018-04-02 00:00:00"
+        },
+        {
+            "title": "#369: Angel Coitus",
+            "date": "2018-04-10 00:00:00"
+        },
+        {
+            "title": "#370: Tell \u2018Em Uber Dave",
+            "date": "2018-04-24 00:00:00"
+        },
+        {
+            "title": "#371: Daddy Edgar",
+            "date": "2018-05-02 00:00:00"
+        },
+        {
+            "title": "#372: King of Swing",
+            "date": "2018-05-07 00:00:00"
+        },
+        {
+            "title": "#373: Number 5 is Alive",
+            "date": "2018-05-15 00:00:00"
+        },
+        {
+            "title": "#373.5: Story Time",
+            "date": "2018-05-19 00:00:00"
+        },
+        {
+            "title": "#374: Johnson Being",
+            "date": "2018-05-26 00:00:00"
+        },
+        {
+            "title": "#375: Enema Mine",
+            "date": "2018-05-31 00:00:00"
+        },
+        {
+            "title": "#375.5: Go the F*ck to Sleep",
+            "date": "2018-06-07 00:00:00"
+        },
+        {
+            "title": "#376: Trash Purgatory",
+            "date": "2018-06-07 00:00:00"
+        },
+        {
+            "title": "#377: Return of the Mack...Daddy",
+            "date": "2018-06-24 00:00:00"
+        },
+        {
+            "title": "#378: Scatman Johnson",
+            "date": "2018-06-25 00:00:00"
+        },
+        {
+            "title": "#379: Stop That Pigeon",
+            "date": "2018-07-06 00:00:00"
+        },
+        {
+            "title": "#380:The Declan cut sucks",
+            "date": "2018-07-13 00:00:00"
+        },
+        {
+            "title": "#381: Butthole Motorboat",
+            "date": "2018-07-31 00:00:00"
+        },
+        {
+            "title": "#382: The Podcast That Cared Too Much",
+            "date": "2018-08-07 00:00:00"
+        },
+        {
+            "title": "#383: Mind Effer (Clean Version)",
+            "date": "2018-08-14 00:00:00"
+        },
+        {
+            "title": "#384: My Brother the Car",
+            "date": "2018-08-21 00:00:00"
+        },
+        {
+            "title": "#385: Mr. Manager",
+            "date": "2018-08-28 00:00:00"
+        },
+        {
+            "title": "#386: Washing the Martian",
+            "date": "2018-09-05 00:00:00"
+        },
+        {
+            "title": "#387: Fuck Cantcer",
+            "date": "2018-09-11 00:00:00"
+        },
+        {
+            "title": "#388: Death and Periods",
+            "date": "2018-09-24 00:00:00"
+        },
+        {
+            "title": "#389: A Livestream to Remember",
+            "date": "2018-10-05 00:00:00"
+        },
+        {
+            "title": "#390: Unhuggable",
+            "date": "2018-10-12 00:00:00"
+        },
+        {
+            "title": "#391: The 2018 Halloween Special: The Colored Cadre Cometh",
+            "date": "2018-10-19 00:00:00"
+        },
+        {
+            "title": "#392: King Dong",
+            "date": "2018-10-29 00:00:00"
+        },
+        {
+            "title": "#393: The SS Hoochie",
+            "date": "2018-11-09 00:00:00"
+        },
+        {
+            "title": "#393.5: Tea Time",
+            "date": "2018-11-20 00:00:00"
+        },
+        {
+            "title": "#394: The Ronda Rousey of Reindeers",
+            "date": "2018-12-05 00:00:00"
+        },
+        {
+            "title": "#395: Fuller House",
+            "date": "2018-12-23 00:00:00"
+        },
+        {
+            "title": "#396: Fitbit Follies",
+            "date": "2019-01-08 00:00:00"
+        },
+        {
+            "title": "#397: Prank Superstar",
+            "date": "2019-01-15 00:00:00"
+        },
+        {
+            "title": "#398: Max Factor",
+            "date": "2019-01-25 00:00:00"
+        },
+        {
+            "title": "#399: WrestleRama",
+            "date": "2019-02-01 00:00:00"
+        },
+        {
+            "title": "#400: Makin' Hay 3",
+            "date": "2019-02-07 00:00:00"
+        },
+        {
+            "title": "#400.1: Making Haystory",
+            "date": "2019-02-14 00:00:00"
+        },
+        {
+            "title": "#401: After the Glory...",
+            "date": "2019-02-14 00:00:00"
+        },
+        {
+            "title": "#402: Never.",
+            "date": "2019-03-08 00:00:00"
+        },
+        {
+            "title": "#403: Rock and Roll Fantasy",
+            "date": "2019-03-28 00:00:00"
+        },
+        {
+            "title": "#404: Romancing the Stone",
+            "date": "2019-04-11 00:00:00"
+        },
+        {
+            "title": "#405: Jurassic Dorks",
+            "date": "2019-04-15 00:00:00"
+        },
+        {
+            "title": "#406: The Slippery Slope of Satanism",
+            "date": "2019-04-24 00:00:00"
+        },
+        {
+            "title": "#407: Hair by Jeffr\u00eby",
+            "date": "2019-05-09 00:00:00"
+        },
+        {
+            "title": "#408: Activate Baby Mode",
+            "date": "2019-05-17 00:00:00"
+        },
+        {
+            "title": "#409: No More Periods, Period!",
+            "date": "2019-05-25 00:00:00"
+        },
+        {
+            "title": "#410: BM Bounty Hunters",
+            "date": "2019-05-31 00:00:00"
+        },
+        {
+            "title": "#411: Auditory Promised Land",
+            "date": "2019-06-11 00:00:00"
+        },
+        {
+            "title": "#412: Fancy Pants",
+            "date": "2019-06-18 00:00:00"
+        },
+        {
+            "title": "#413: Bagel Shrimp",
+            "date": "2019-06-27 00:00:00"
+        },
+        {
+            "title": "#414: This Shithole Earth",
+            "date": "2019-07-15 00:00:00"
+        },
+        {
+            "title": "#415: American Dadz",
+            "date": "2019-07-23 00:00:00"
+        },
+        {
+            "title": "#416: Rock and Roll Fantasy",
+            "date": "2019-08-02 00:00:00"
+        },
+        {
+            "title": "#417: Little Owl Hands",
+            "date": "2019-08-08 00:00:00"
+        },
+        {
+            "title": "#417.5: 148 Degrees In The Shade",
+            "date": "2019-08-19 00:00:00"
+        },
+        {
+            "title": "#418: QISS",
+            "date": "2019-08-29 00:00:00"
+        },
+        {
+            "title": "#419: Silver Ain\u2019t Bad",
+            "date": "2019-08-31 00:00:00"
+        },
+        {
+            "title": "#420: The Brothers Grimm(Er)",
+            "date": "2019-09-10 00:00:00"
+        },
+        {
+            "title": "#421: Retailer Holocaust",
+            "date": "2019-09-15 00:00:00"
+        },
+        {
+            "title": "#422: A Scarecrow\u2019s Story",
+            "date": "2019-09-27 00:00:00"
+        },
+        {
+            "title": "#423: The One Where They Seem Comatose",
+            "date": "2019-10-10 00:00:00"
+        },
+        {
+            "title": "#424: Chicken Centipede",
+            "date": "2019-10-21 00:00:00"
+        },
+        {
+            "title": "#425: Prince Bry of Monaco",
+            "date": "2019-10-27 00:00:00"
+        },
+        {
+            "title": "#426: Gone Phishin\u2019",
+            "date": "2019-10-31 00:00:00"
+        },
+        {
+            "title": "#427: Water Tastes Like Water",
+            "date": "2019-11-14 00:00:00"
+        },
+        {
+            "title": "#428: It\u2019s over, Johnson! It\u2019s over!",
+            "date": "2019-11-24 00:00:00"
+        },
+        {
+            "title": "#429: Fire in the Hole: Rise of the Buttlerockets",
+            "date": "2019-12-08 00:00:00"
+        },
+        {
+            "title": "#430: Oldmandalorian",
+            "date": "2020-01-11 00:00:00"
+        },
+        {
+            "title": "#431: Ill Communication",
+            "date": "2020-01-19 00:00:00"
+        },
+        {
+            "title": "#432: Spreading the Disease",
+            "date": "2020-01-27 00:00:00"
+        },
+        {
+            "title": "#433: Stirling Porrich",
+            "date": "2020-02-02 00:00:00"
+        },
+        {
+            "title": "#434: Are You My Mother?",
+            "date": "2020-02-11 00:00:00"
+        },
+        {
+            "title": "#435: Bry The Masseuse",
+            "date": "2020-02-21 00:00:00"
+        },
+        {
+            "title": "#435.5: Hear Ye, Hear Ye",
+            "date": "2020-02-28 00:00:00"
+        },
+        {
+            "title": "#436: Overkill Junior",
+            "date": "2020-03-01 00:00:00"
+        },
+        {
+            "title": "#437: Jim Class",
+            "date": "2020-03-13 00:00:00"
+        },
+        {
+            "title": "#438: Over The Rainbow Bagel",
+            "date": "2020-03-24 00:00:00"
+        },
+        {
+            "title": "#439: TESD 3-way",
+            "date": "2020-04-05 00:00:00"
+        },
+        {
+            "title": "#440: Tit 4 Tat",
+            "date": "2020-04-13 00:00:00"
+        },
+        {
+            "title": "#441: Lyin\u2019 Johnson",
+            "date": "2020-04-19 00:00:00"
+        },
+        {
+            "title": "#441.5: Frank5 and Bry Present: The 80\u2019s in 80",
+            "date": "2020-04-25 00:00:00"
+        },
+        {
+            "title": "#442: Fry Guy",
+            "date": "2020-04-29 00:00:00"
+        },
+        {
+            "title": "#443: Q\u2019s Blues",
+            "date": "2020-05-03 00:00:00"
+        },
+        {
+            "title": "#444: Four Colors For Life",
+            "date": "2020-05-14 00:00:00"
+        },
+        {
+            "title": "#444.5: It Was The Times",
+            "date": "2020-05-24 00:00:00"
+        },
+        {
+            "title": "#445: Overkill: Kissing The Prussian Devil",
+            "date": "2020-05-24 00:00:00"
+        },
+        {
+            "title": "#446: The TESD Father\u2019s Day Blowout",
+            "date": "2020-06-11 00:00:00"
+        },
+        {
+            "title": "#447: Phuc Boyz",
+            "date": "2020-06-22 00:00:00"
+        },
+        {
+            "title": "#448: Sk8ter Boyz",
+            "date": "2020-07-13 00:00:00"
+        },
+        {
+            "title": "#449: Dr. Qlittle",
+            "date": "2020-07-20 00:00:00"
+        },
+        {
+            "title": "#450: Silver (alert) Foxes",
+            "date": "2020-08-03 00:00:00"
+        },
+        {
+            "title": "#451: I Buy Comics",
+            "date": "2020-08-09 00:00:00"
+        },
+        {
+            "title": "#452: Die on Every Hill",
+            "date": "2020-08-23 00:00:00"
+        },
+        {
+            "title": "#453: One Boob Out",
+            "date": "2020-08-31 00:00:00"
+        },
+        {
+            "title": "#454: Eyes Up!",
+            "date": "2020-09-14 00:00:00"
+        },
+        {
+            "title": "#455: Potpourri of TESD",
+            "date": "2020-09-21 00:00:00"
+        },
+        {
+            "title": "#456: Musical E",
+            "date": "2020-09-27 00:00:00"
+        },
+        {
+            "title": "#457: The Meundies 2020 TESD Halloween Spooktacular",
+            "date": "2020-10-07 00:00:00"
+        },
+        {
+            "title": "#458: Sarcata Nagrata",
+            "date": "2020-10-13 00:00:00"
+        },
+        {
+            "title": "#459: Mask",
+            "date": "2020-10-25 00:00:00"
+        },
+        {
+            "title": "#460: Fat Tit",
+            "date": "2020-11-03 00:00:00"
+        },
+        {
+            "title": "#461: Stronger than Time",
+            "date": "2020-11-09 00:00:00"
+        },
+        {
+            "title": "#462: Gimme The Loot",
+            "date": "2020-11-21 00:00:00"
+        },
+        {
+            "title": "#463: Who\u2019s The Turkey Now?",
+            "date": "2020-11-30 00:00:00"
+        },
+        {
+            "title": "#463.1: The Best of Butter Lips",
+            "date": "2020-12-05 00:00:00"
+        },
+        {
+            "title": "#464: Ignorance is Dope",
+            "date": "2020-12-09 00:00:00"
+        },
+        {
+            "title": "#464.5: It Was The Times: Black Christmas",
+            "date": "2020-12-16 00:00:00"
+        },
+        {
+            "title": "#465: Wookiee Style",
+            "date": "2020-12-25 00:00:00"
+        },
+        {
+            "title": "#466: The Birdman of Staten Island",
+            "date": "2020-12-29 00:00:00"
+        },
+        {
+            "title": "#467: Swan Song",
+            "date": "2021-01-04 00:00:00"
+        },
+        {
+            "title": "#468: Orange Man",
+            "date": "2021-01-19 00:00:00"
+        },
+        {
+            "title": "#469: Qovid",
+            "date": "2021-02-01 00:00:00"
+        },
+        {
+            "title": "#470: The Cult of Tom",
+            "date": "2021-02-06 00:00:00"
+        },
+        {
+            "title": "#471: Poppin\u2019 Da Cherry",
+            "date": "2021-02-14 00:00:00"
+        },
+        {
+            "title": "#472: Senility Smiles",
+            "date": "2021-02-28 00:00:00"
+        },
+        {
+            "title": "#473: Keep it De-real",
+            "date": "2021-03-07 00:00:00"
+        },
+        {
+            "title": "#474: Retell \u2018Em Steve Dave: Part Two",
+            "date": "2021-03-14 00:00:00"
+        },
+        {
+            "title": "#475: King Thong",
+            "date": "2021-03-21 00:00:00"
+        },
+        {
+            "title": "#476: Devil Shoes",
+            "date": "2021-03-28 00:00:00"
+        },
+        {
+            "title": "#477: BTS 4 eva",
+            "date": "2021-04-12 00:00:00"
+        },
+        {
+            "title": "#478: The Spy Who F&@ked Me",
+            "date": "2021-04-18 00:00:00"
+        },
+        {
+            "title": "#479: Rubber Feet",
+            "date": "2021-05-09 00:00:00"
+        },
+        {
+            "title": "#480: The Human Fifi",
+            "date": "2021-05-23 00:00:00"
+        },
+        {
+            "title": "#481: Silent Sufferin\u2019",
+            "date": "2021-05-30 00:00:00"
+        },
+        {
+            "title": "#482: In praise of a bear girl",
+            "date": "2021-06-06 00:00:00"
+        },
+        {
+            "title": "#483: A Joyride Into Space",
+            "date": "2021-06-14 00:00:00"
+        },
+        {
+            "title": "#484: Cruzin\u2019 4 Male Tail",
+            "date": "2021-06-22 00:00:00"
+        },
+        {
+            "title": "#485: Westward Ho!",
+            "date": "2021-07-11 00:00:00"
+        },
+        {
+            "title": "#486: Gimme Dat Blue Milk",
+            "date": "2021-07-18 00:00:00"
+        },
+        {
+            "title": "#487: We Got Musk",
+            "date": "2021-07-31 00:00:00"
+        },
+        {
+            "title": "#488: Channel 1,000,000",
+            "date": "2021-08-08 00:00:00"
+        },
+        {
+            "title": "#489: TESD of Love",
+            "date": "2021-08-22 00:00:00"
+        },
+        {
+            "title": "#490: Balls!!!",
+            "date": "2021-08-29 00:00:00"
+        },
+        {
+            "title": "#491: We don't watch birds, birds watch us!",
+            "date": "2021-09-12 00:00:00"
+        },
+        {
+            "title": "#492: Space Monkeys - Four's Company",
+            "date": "2021-09-21 00:00:00"
+        },
+        {
+            "title": "#493: Potato Thighs",
+            "date": "2021-09-26 00:00:00"
+        },
+        {
+            "title": "#494: Dungaree Butthole",
+            "date": "2021-10-10 00:00:00"
+        },
+        {
+            "title": "#495: \u2026Ehhhhh",
+            "date": "2021-10-17 00:00:00"
+        },
+        {
+            "title": "#496: Devil\u2019s Beef",
+            "date": "2021-10-24 00:00:00"
+        },
+        {
+            "title": "#497: The 2021 TESD Halloween Spooktacular: Dollah\u2019s Inferno",
+            "date": "2021-10-31 00:00:00"
+        },
+        {
+            "title": "#498: Cometh the Early Bird",
+            "date": "2021-11-07 00:00:00"
+        },
+        {
+            "title": "#499: Castawayed!",
+            "date": "2021-11-13 00:00:00"
+        },
+        {
+            "title": "#500: It\u2019s The Big One",
+            "date": "2021-11-21 00:00:00"
+        },
+        {
+            "title": "#501: And Then There Were Two",
+            "date": "2021-12-06 00:00:00"
+        },
+        {
+            "title": "#502: Covid Chuck",
+            "date": "2021-12-12 00:00:00"
+        },
+        {
+            "title": "#503: 30 Years of Nuthin\u2019",
+            "date": "2021-12-19 00:00:00"
+        },
+        {
+            "title": "#504: Gotcha!",
+            "date": "2021-12-31 00:00:00"
+        },
+        {
+            "title": "#505: Anklez & Tipz",
+            "date": "2022-01-09 00:00:00"
+        },
+        {
+            "title": "#506: Big, Blue, Boy Scout",
+            "date": "2022-01-16 00:00:00"
+        },
+        {
+            "title": "#507: F Las Vegas",
+            "date": "2022-02-07 00:00:00"
+        },
+        {
+            "title": "#508: It\u2019s Curtains For Ya",
+            "date": "2022-02-21 00:00:00"
+        },
+        {
+            "title": "#509: The Mooching Sack",
+            "date": "2022-02-27 00:00:00"
+        },
+        {
+            "title": "#510: It\u2019s all about Frank",
+            "date": "2022-03-07 00:00:00"
+        },
+        {
+            "title": "#511: G-Spot and C-Man",
+            "date": "2022-03-14 00:00:00"
+        },
+        {
+            "title": "#512: Sack Window",
+            "date": "2022-03-21 00:00:00"
+        },
+        {
+            "title": "#513: Johnny\u2019s Choice",
+            "date": "2022-03-29 00:00:00"
+        },
+        {
+            "title": "#514: Final Foreskin",
+            "date": "2022-04-17 00:00:00"
+        },
+        {
+            "title": "#515: PhDeez Nutz",
+            "date": "2022-04-24 00:00:00"
+        },
+        {
+            "title": "#516: The Vanilla Edge",
+            "date": "2022-05-08 00:00:00"
+        },
+        {
+            "title": "#517: Talkin\u2019 About Sharkin\u2019",
+            "date": "2022-05-15 00:00:00"
+        },
+        {
+            "title": "#518: One Con and a Funeral",
+            "date": "2022-05-29 00:00:00"
+        },
+        {
+            "title": "#519: Superfestation",
+            "date": "2022-06-05 00:00:00"
+        },
+        {
+            "title": "#520: Chuck Roast",
+            "date": "2022-06-12 00:00:00"
+        },
+        {
+            "title": "#521: Cruisin\u2019 With The Oldies",
+            "date": "2022-06-29 00:00:00"
+        },
+        {
+            "title": "#522: The Sin of Happiness",
+            "date": "2022-07-09 00:00:00"
+        },
+        {
+            "title": "#523: Bruce Almighty",
+            "date": "2022-07-17 00:00:00"
+        },
+        {
+            "title": "#524: Cletus\u2019 World",
+            "date": "2022-07-31 00:00:00"
+        },
+        {
+            "title": "#525: The Hammer",
+            "date": "2022-08-08 00:00:00"
+        },
+        {
+            "title": "#526: Foreign Chicken Fingers",
+            "date": "2022-08-21 00:00:00"
+        },
+        {
+            "title": "#527: Barbara Eden is 90!!",
+            "date": "2022-08-29 00:00:00"
+        },
+        {
+            "title": "#528: Koi-tastrophe",
+            "date": "2022-09-08 00:00:00"
+        },
+        {
+            "title": "#529: Oyster Boners",
+            "date": "2022-09-12 00:00:00"
+        },
+        {
+            "title": "#530: Cons-troversy",
+            "date": "2022-09-20 00:00:00"
+        },
+        {
+            "title": "#531: Bodacious",
+            "date": "2022-09-27 00:00:00"
+        },
+        {
+            "title": "#532: A Sexy Canoe Trip",
+            "date": "2022-10-09 00:00:00"
+        },
+        {
+            "title": "#533: Git Em\u2019s Excellent Adventure",
+            "date": "2022-10-17 00:00:00"
+        },
+        {
+            "title": "#534: The 2022 TESD Halloween Spooktacular",
+            "date": "2022-10-23 00:00:00"
+        },
+        {
+            "title": "#535: I WON\u2019T Shut Up!",
+            "date": "2022-11-07 00:00:00"
+        },
+        {
+            "title": "#536: Salmon In The Microwave",
+            "date": "2022-11-14 00:00:00"
+        },
+        {
+            "title": "#537: Jive Turkeys",
+            "date": "2022-11-21 00:00:00"
+        },
+        {
+            "title": "#538: Kids in Satan\u2019s Service",
+            "date": "2022-11-28 00:00:00"
+        },
+        {
+            "title": "#539: Mr. Glass",
+            "date": "2022-12-06 00:00:00"
+        },
+        {
+            "title": "#540: Hot Grandma",
+            "date": "2022-12-25 00:00:00"
+        },
+        {
+            "title": "#541: Tuna Slop",
+            "date": "2023-01-08 00:00:00"
+        },
+        {
+            "title": "#542: The Sting, too",
+            "date": "2023-01-14 00:00:00"
+        },
+        {
+            "title": "#543: No Apologies",
+            "date": "2023-01-23 00:00:00"
+        },
+        {
+            "title": "#544: The Commish",
+            "date": "2023-01-30 00:00:00"
+        },
+        {
+            "title": "#545: The Q Spot",
+            "date": "2023-02-06 00:00:00"
+        },
+        {
+            "title": "#546: Material Boyz",
+            "date": "2023-02-13 00:00:00"
+        },
+        {
+            "title": "#547: Absentee Podcaster",
+            "date": "2023-02-20 00:00:00"
+        },
+        {
+            "title": "#548: Tee Is For Tampon",
+            "date": "2023-02-26 00:00:00"
+        },
+        {
+            "title": "#549: Fair Weather Flanagan",
+            "date": "2023-03-06 00:00:00"
+        },
+        {
+            "title": "#550: The Secret",
+            "date": "2023-03-19 00:00:00"
+        },
+        {
+            "title": "#551: The Joe DeRosa Train",
+            "date": "2023-03-26 00:00:00"
+        },
+        {
+            "title": "#552: The Perils of Petsitting",
+            "date": "2023-04-03 00:00:00"
+        },
+        {
+            "title": "#553: So Smooth",
+            "date": "2023-04-12 00:00:00"
+        },
+        {
+            "title": "#554: Joey da Rose",
+            "date": "2023-04-18 00:00:00"
+        },
+        {
+            "title": "#555: I Wanna Be Tough",
+            "date": "2023-04-24 00:00:00"
+        },
+        {
+            "title": "#556: Q\u2019s Cup Overfloweth",
+            "date": "2023-05-01 00:00:00"
+        },
+        {
+            "title": "#557: Kissing Bandits",
+            "date": "2023-05-10 00:00:00"
+        },
+        {
+            "title": "#558: Bonnet Headz",
+            "date": "2023-06-07 00:00:00"
+        },
+        {
+            "title": "#559: Q\u2019s Madhouse",
+            "date": "2023-06-12 00:00:00"
+        },
+        {
+            "title": "#560: The Porcelain Unabomber",
+            "date": "2023-06-18 00:00:00"
+        },
+        {
+            "title": "#561: Alien Dildo",
+            "date": "2023-06-25 00:00:00"
+        },
+        {
+            "title": "#562: Fat Boy Summer",
+            "date": "2023-07-04 00:00:00"
+        },
+        {
+            "title": "#563: F.U.N. (Plankton style)",
+            "date": "2023-07-12 00:00:00"
+        },
+        {
+            "title": "#564: Son of the Soil",
+            "date": "2023-07-20 00:00:00"
+        },
+        {
+            "title": "#565: TESD\u2019s Life of Bryan",
+            "date": "2023-07-25 00:00:00"
+        },
+        {
+            "title": "#566: North of the Border",
+            "date": "2023-08-11 00:00:00"
+        },
+        {
+            "title": "#567: Little Chippy (abridged)",
+            "date": "2023-08-25 00:00:00"
+        },
+        {
+            "title": "#568: Days of our Lives",
+            "date": "2023-09-09 00:00:00"
+        },
+        {
+            "title": "#569: Brown Snakes on a Plane",
+            "date": "2023-09-17 00:00:00"
+        },
+        {
+            "title": "#570: Nose Too Long?",
+            "date": "2023-09-24 00:00:00"
+        },
+        {
+            "title": "#571: Stool Archeologist",
+            "date": "2023-10-02 00:00:00"
+        },
+        {
+            "title": "#572: Call Me Mr. Johnson",
+            "date": "2023-10-08 00:00:00"
+        },
+        {
+            "title": "#573: Ming the Maverick",
+            "date": "2023-10-16 00:00:00"
+        },
+        {
+            "title": "#574: The Doffening",
+            "date": "2023-10-23 00:00:00"
+        },
+        {
+            "title": "#575: The TESD Halloween Spooktacular",
+            "date": "2023-10-30 00:00:00"
+        },
+        {
+            "title": "#576: Double Puss-Out",
+            "date": "2023-11-05 00:00:00"
+        },
+        {
+            "title": "#577: Human Code H",
+            "date": "2023-11-12 00:00:00"
+        },
+        {
+            "title": "#578: The Johnson Chip",
+            "date": "2023-11-22 00:00:00"
+        },
+        {
+            "title": "#579: TESD Angels",
+            "date": "2023-12-03 00:00:00"
+        },
+        {
+            "title": "#580: Mother Ducker",
+            "date": "2023-12-10 00:00:00"
+        },
+        {
+            "title": "#581: Q the Running Man",
+            "date": "2023-12-17 00:00:00"
+        },
+        {
+            "title": "#582: Calloused Ears",
+            "date": "2024-01-07 00:00:00"
+        },
+        {
+            "title": "#583: Now! Git \u2018em free!",
+            "date": "2024-01-15 00:00:00"
+        },
+        {
+            "title": "#584: Top 5! Top 5!",
+            "date": "2024-01-21 00:00:00"
+        },
+        {
+            "title": "#585: AP Law",
+            "date": "2024-02-04 00:00:00"
+        },
+        {
+            "title": "#586: Kuhleegleeuh",
+            "date": "2024-02-18 00:00:00"
+        },
+        {
+            "title": "#587: Namby Pamby",
+            "date": "2024-02-25 00:00:00"
+        },
+        {
+            "title": "#588: Mending Fences",
+            "date": "2024-03-04 00:00:00"
+        },
+        {
+            "title": "#589: PB&T",
+            "date": "2024-03-10 00:00:00"
+        },
+        {
+            "title": "#590: Popobawa",
+            "date": "2024-03-17 00:00:00"
+        },
+        {
+            "title": "#591: No More Favors!",
+            "date": "2024-03-24 00:00:00"
+        },
+        {
+            "title": "#592: Never Surrender",
+            "date": "2024-03-31 00:00:00"
+        },
+        {
+            "title": "#593: Hot Towel",
+            "date": "2024-04-14 00:00:00"
+        },
+        {
+            "title": "#594: Sunny\u2019s List",
+            "date": "2024-04-21 00:00:00"
+        },
+        {
+            "title": "#595: Kojak Fever",
+            "date": "2024-04-29 00:00:00"
+        },
+        {
+            "title": "#596: Tom Swift",
+            "date": "2024-05-05 00:00:00"
+        },
+        {
+            "title": "#597: Depruded",
+            "date": "2024-05-12 00:00:00"
+        },
+        {
+            "title": "#598: The Fun Gauntlet",
+            "date": "2024-05-19 00:00:00"
+        },
+        {
+            "title": "#599: Midget Volcano",
+            "date": "2024-06-11 00:00:00"
+        },
+        {
+            "title": "#599.9: Looking at Infinity",
+            "date": "2024-06-16 00:00:00"
+        },
+        {
+            "title": "#600: Dead Git 'Em Walking",
+            "date": "2024-06-26 00:00:00"
+        },
+        {
+            "title": "#601: Raw Doggin'",
+            "date": "2024-07-14 00:00:00"
+        },
+        {
+            "title": "#602: Urban Rottweiler Jamboree",
+            "date": "2024-07-14 00:00:00"
+        },
+        {
+            "title": "#603: The Eel and the Lime",
+            "date": "2024-08-04 00:00:00"
+        },
+        {
+            "title": "#604: Angel Boy",
+            "date": "2024-08-12 00:00:00"
+        },
+        {
+            "title": "#605: Robot Gerbil",
+            "date": "2024-08-26 00:00:00"
+        },
+        {
+            "title": "#606: Aggressive Relaxation",
+            "date": "2024-08-31 00:00:00"
+        },
+        {
+            "title": "#607: BQE",
+            "date": "2024-09-15 00:00:00"
+        },
+        {
+            "title": "#608: Bry the Pony",
+            "date": "2024-09-22 00:00:00"
+        },
+        {
+            "title": "#609: Sarco",
+            "date": "2024-09-29 00:00:00"
+        },
+        {
+            "title": "#610: T.O.M.",
+            "date": "2024-10-07 00:00:00"
+        },
+        {
+            "title": "#611: Flip Floppery",
+            "date": "2024-10-13 00:00:00"
+        },
+        {
+            "title": "#612: Moe\u2019s Revenge",
+            "date": "2024-10-21 00:00:00"
+        },
+        {
+            "title": "#613: The 2024 Halloween Spooktacular",
+            "date": "2024-10-28 00:00:00"
+        },
+        {
+            "title": "#614: Hawk Q\u2019uh",
+            "date": "2024-11-03 00:00:00"
+        },
+        {
+            "title": "#615: Pork Sundae",
+            "date": "2024-11-10 00:00:00"
+        },
+        {
+            "title": "#616: Pam\u2019s Sex Tape",
+            "date": "2024-11-17 00:00:00"
+        },
+        {
+            "title": "#617: Water, Water, Everywhere",
+            "date": "2024-11-24 00:00:00"
+        },
+        {
+            "title": "#618: Mad Diddy",
+            "date": "2024-12-08 00:00:00"
+        },
+        {
+            "title": "#619: Buzz, Buzz!",
+            "date": "-2024-12-16"
+        },
+        {
+            "title": "#620: Q Runs a Train",
+            "date": "2024-12-23 00:00:00"
+        },
+        {
+            "title": "#621: Savage White Elephant",
+            "date": "2025-01-12 00:00:00"
+        },
+        {
+            "title": "#622: Doctors of Podology",
+            "date": "2025-01-20 00:00:00"
+        },
+        {
+            "title": "#623: The Power of Three",
+            "date": "2025-01-26 00:00:00"
+        },
+        {
+            "title": "#624: The Accused",
+            "date": "2025-02-02 00:00:00"
+        },
+        {
+            "title": "#625: Gopher It",
+            "date": "2025-02-09 00:00:00"
+        },
+        {
+            "title": "#626: Can\u2019t Lyft This",
+            "date": "2025-02-16 00:00:00"
+        },
+        {
+            "title": "#627: Just Deal",
+            "date": "2025-02-24 00:00:00"
+        },
+        {
+            "title": "#628: Keep it Unreal",
+            "date": "2025-03-03 00:00:00"
+        }
+    ],
+    "Overkill": [
+        {
+            "title": "TESD Overkill – The Zune Years: Q and His Super Sexified Electra Robotastic Soul-Free Thingamabob",
+            "date": "2011-06-27 00:00:00"
+        },
+        {
+            "title": "TESD Overkill – The Zune Years: Into the Vortex",
+            "date": "2011-07-04 00:00:00"
+        },
+        {
+            "title": "TESD Overkill – The Zune Years: G-G-G-G-GHOST!!!",
+            "date": "2011-07-11 00:00:00"
+        },
+        {
+            "title": "TESD Overkill – The Zune Years: HELP US… HELP… HELP",
+            "date": "2011-07-18 00:00:00"
+        },
+        {
+            "title": "TESD Overkill – The Zune Years: IF IT’S TOO LOUD, YOU’RE TOO OLD.",
+            "date": "2011-07-25 00:00:00"
+        },
+        {
+            "title": "TESD Overkill – The Zune Years: OF OUR ELABORATE PLANS, THE END.",
+            "date": "2011-08-01 00:00:00"
+        },
+        {
+            "title": "TESD Overkill – The Zune Years: REPTILIAN ELITE",
+            "date": "2011-08-09 00:00:00"
+        },
+        {
+            "title": "TESD Overkill – The Zune Years: TURN ME ON, DEAD MAN",
+            "date": "2011-08-15 00:00:00"
+        },
+        {
+            "title": "TESD Overkill – The Zune Years: SPANISH BRY",
+            "date": "2011-08-23 00:00:00"
+        },
+        {
+            "title": "TESD Overkill – The Zune Years: THE HONEYTRAP",
+            "date": "2011-09-01 00:00:00"
+        },
+        {
+            "title": "TESD Overkill – The Zune Years: PHONY BALOGNA",
+            "date": "2011-09-06 00:00:00"
+        },
+        {
+            "title": "TESD Overkill – The Zune Years: THE NUT SLAYER",
+            "date": "2011-09-13 00:00:00"
+        },
+        {
+            "title": "TESD Overkill – The Zune Years: SHE WAS WITH JOURNEY’S NEAL SCHON",
+            "date": "2011-09-21 00:00:00"
+        },
+        {
+            "title": "TESD Overkill – The Zune Years: MING AND THE FLESH COLORED SPEEDO",
+            "date": "2011-09-26 00:00:00"
+        },
+        {
+            "title": "TESD Overkill – The Zune Years: WHAT THE OTHER ONE SHOULDA’ BEEN",
+            "date": "2011-10-07 00:00:00"
+        },
+        {
+            "title": "TESD Overkill – The Zune Years: WALT THE TORTURER",
+            "date": "2011-10-11 00:00:00"
+        }
+    ],
+    "TESD_Bonus": [
+        {
+            "title": "Tell 'em Steve-Dave: Thank you Podcast for Hollywood Improv Ticket Buyers",
+            "date": "2010-07-30 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave: Benefit Podcast for Brendan Marrocco",
+            "date": "2010-08-29 00:00:00"
+        },
+        {
+            "title": "Adam & Eve Bonus Pod",
+            "date": "2010-11-24 00:00:00"
+        },
+        {
+            "title": "SPACE MONKEYS",
+            "date": "2011-03-10 00:00:00"
+        },
+        {
+            "title": "Puck Nuts Bonus Podcast",
+            "date": "2011-03-10 00:00:00"
+        },
+        {
+            "title": "Brylands: A Peephole History",
+            "date": "2011-05-07 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave: The Worst Episode Ever",
+            "date": "2011-05-13 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave: Live at the Count Basie Theatre",
+            "date": "2011-10-08 00:00:00"
+        },
+        {
+            "title": "Audible Bonus Pod",
+            "date": "2011-11-06 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave: X-Mas Pod 2011",
+            "date": "2011-11-25 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave: Vinyl Cast",
+            "date": "2012-04-11 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave: X-Mas Pod 2012",
+            "date": "2012-11-23 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave: X-Mas Pod 2012 - OUTAKES",
+            "date": "2012-11-23 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave: X-Mas Pod 2012 - Commercial",
+            "date": "2012-11-23 00:00:00"
+        },
+        {
+            "title": "TESD Overkill – The Zune Years: Introduction",
+            "date": "2013-01-29 00:00:00"
+        },
+        {
+            "title": "TESD Overkill – The Zune Years: A NUMBER’S GAME",
+            "date": "2013-01-29 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave: Cryptozoic Man Bonus Pod",
+            "date": "2013-10-09 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave: Fiasco Podcast",
+            "date": "2013-11-22 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave: X-Mas Pod 2013",
+            "date": "2013-11-29 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave: X-Mas Pod 2013 - BONUS CONTENT",
+            "date": "2013-11-29 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave: X-Mas Pod 2013 - Preview",
+            "date": "2013-11-29 00:00:00"
+        },
+        {
+            "title": "I Sell Comics: 'Takin’ Hay' ",
+            "date": "2013-12-31 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave: Bonus Pod IV",
+            "date": "2014-01-17 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave: X-Mas Pod 2014",
+            "date": "2014-11-28 00:00:00"
+        },
+        {
+            "title": "TESD X-Mas 2014 - Part 2",
+            "date": "2014-11-28 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave: X-Mas Pod 2015",
+            "date": "2015-11-27 00:00:00"
+        },
+        {
+            "title": "Tell 'Em Steve-Dave! 289",
+            "date": "2016-05-12 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave: The Long Burn",
+            "date": "2016-05-24 00:00:00"
+        },
+        {
+            "title": "TESD 290 Live Ad",
+            "date": "2016-05-30 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave: Vinyl Cast II",
+            "date": "2016-09-29 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave: X-Mas Pod 2016 P.1",
+            "date": "2016-11-25 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave: X-Mas Pod 2016 P.2",
+            "date": "2016-11-25 00:00:00"
+        },
+        {
+            "title": "The Cochlear Album",
+            "date": "2017-01-28 00:00:00"
+        },
+        {
+            "title": "TESD 536.1",
+            "date": "2017-05-22 00:00:00"
+        },
+        {
+            "title": "Quinn It To Win It Bonus Pod",
+            "date": "2017-11-24 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave: X-Mas Pod 2017 P.1",
+            "date": "2017-12-26 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave: X-Mas Pod 2017 P.2",
+            "date": "2017-12-26 00:00:00"
+        },
+        {
+            "title": "The Cochlear Album 2: Pan's Poison",
+            "date": "2018-03-05 00:00:00"
+        },
+        {
+            "title": "2018 TESD Xmas Special (Audio)",
+            "date": "2018-11-24 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave Presents: A Small Fistful of Dollahs",
+            "date": "2015-04-02 00:00:00"
+        },
+        {
+            "title": "Tell 'em Steve-Dave's Fair-Re-Re Tale Theatre vol. 1",
+            "date": "2013-07-30 00:00:00"
+        }
+    ]
+}
