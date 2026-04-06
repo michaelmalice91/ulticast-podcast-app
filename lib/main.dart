@@ -2498,63 +2498,226 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TextEditingController _controller = TextEditingController();
+  Timer? _debounce;
+  List<Map<String, dynamic>> _searchResults = [];
+  bool _isSearching = false;
+  bool _isAdding = false;
+  String _searchError = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_onSearchChanged);
+  }
 
   @override
   void dispose() {
-    // dispose the controller here (State lifecycle)
+    _controller.removeListener(_onSearchChanged);
     _controller.dispose();
+    _debounce?.cancel();
     super.dispose();
+  }
+
+  void _onSearchChanged() {
+    final text = _controller.text.trim();
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    // If it looks like a URL, skip iTunes search
+    if (text.startsWith('http://') || text.startsWith('https://')) {
+      setState(() {
+        _searchResults = [];
+        _isSearching = false;
+        _searchError = '';
+      });
+      return;
+    }
+    if (text.length < 2) {
+      setState(() {
+        _searchResults = [];
+        _isSearching = false;
+        _searchError = '';
+      });
+      return;
+    }
+    setState(() => _isSearching = true);
+    _debounce = Timer(const Duration(milliseconds: 500), () => _runSearch(text));
+  }
+
+  Future<void> _runSearch(String query) async {
+    try {
+      final uri = Uri.https('itunes.apple.com', '/search', {
+        'term': query,
+        'media': 'podcast',
+        'entity': 'podcast',
+        'limit': '20',
+      });
+      final response = await http.get(uri);
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body) as Map<String, dynamic>;
+        final results = (decoded['results'] as List<dynamic>)
+            .map((e) => e as Map<String, dynamic>)
+            .toList();
+        setState(() {
+          _searchResults = results;
+          _isSearching = false;
+          _searchError = '';
+        });
+      } else {
+        setState(() {
+          _isSearching = false;
+          _searchError = 'iTunes search failed (${response.statusCode})';
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isSearching = false;
+        _searchError = 'Could not reach iTunes search';
+      });
+    }
+  }
+
+  Future<void> _addPodcastByUrl(String feedUrl) async {
+    setState(() => _isAdding = true);
+    final provider = Provider.of<PodcastAppState>(context, listen: false);
+    await provider.loadPodcast(feedUrl);
+    if (!mounted) return;
+    setState(() => _isAdding = false);
+    final loadError = provider.error(feedUrl);
+    if (loadError != null && loadError.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(loadError)),
+      );
+      return;
+    }
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
+    final text = _controller.text.trim();
+    final bool isUrlMode = text.startsWith('http');
     return Scaffold(
-      appBar: AppBar(title: const Text("Podcast Home")),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: _controller,
-              decoration: const InputDecoration(
-                labelText: "Enter podcast feed URL",
-                border: OutlineInputBorder(),
+      appBar: AppBar(title: const Text('Add Podcast')),
+      body: _isAdding
+          ? const Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Loading podcast...'),
+                ],
               ),
+            )
+          : Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: TextField(
+                    controller: _controller,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      labelText: isUrlMode ? 'RSS feed URL' : 'Search podcasts',
+                      hintText: 'Search by name or paste an RSS URL',
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _controller.clear();
+                                setState(() {
+                                  _searchResults = [];
+                                  _searchError = '';
+                                });
+                              },
+                            )
+                          : null,
+                    ),
+                  ),
+                ),
+                if (isUrlMode)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => _addPodcastByUrl(text),
+                        child: const Text('Add by RSS URL'),
+                      ),
+                    ),
+                  ),
+                if (_isSearching)
+                  const Padding(
+                    padding: EdgeInsets.all(24),
+                    child: CircularProgressIndicator(),
+                  )
+                else if (_searchError.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      _searchError,
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.error),
+                    ),
+                  )
+                else if (_searchResults.isNotEmpty)
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: _searchResults.length,
+                      itemBuilder: (context, index) {
+                        final result = _searchResults[index];
+                        final name = (result['collectionName'] ??
+                                result['trackName'] ??
+                                'Unknown')
+                            .toString();
+                        final artist =
+                            (result['artistName'] ?? '').toString();
+                        final artworkUrl =
+                            (result['artworkUrl100'] ?? '').toString();
+                        final feedUrl =
+                            (result['feedUrl'] ?? '').toString();
+                        return ListTile(
+                          leading: artworkUrl.isNotEmpty
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: Image.network(
+                                    artworkUrl,
+                                    width: 50,
+                                    height: 50,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (c, e, s) => const Icon(
+                                        Icons.podcasts,
+                                        size: 40),
+                                  ),
+                                )
+                              : const Icon(Icons.podcasts, size: 40),
+                          title: Text(name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis),
+                          subtitle: artist.isNotEmpty
+                              ? Text(artist,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis)
+                              : null,
+                          trailing: feedUrl.isNotEmpty
+                              ? const Icon(Icons.add_circle_outline)
+                              : const Icon(Icons.block, color: Colors.grey),
+                          onTap: feedUrl.isNotEmpty
+                              ? () => _addPodcastByUrl(feedUrl)
+                              : null,
+                        );
+                      },
+                    ),
+                  )
+                else if (text.length >= 2 && !isUrlMode)
+                  const Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Text('No results found'),
+                  ),
+              ],
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () async {
-                final feedUrl = _controller.text.trim();
-                if (feedUrl.isNotEmpty) {
-                  // Update the app state with the feed URL
-                  final provider = Provider.of<PodcastAppState>(
-                    context,
-                    listen: false,
-                  );
-                  await provider.loadPodcast(feedUrl);
-                  if (!mounted) return;
-
-                  final loadError = provider.error(feedUrl);
-                  if (loadError != null && loadError.isNotEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(loadError)),
-                    );
-                    return;
-                  }
-
-                  Navigator.pop(context);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Please enter a feed URL")),
-                  );
-                }
-              },
-              child: const Text("Load Episodes"),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -2859,6 +3022,9 @@ class EpisodesPage extends StatefulWidget {
 class _EpisodesPageState extends State<EpisodesPage> {
   EpisodeFilter _filter = EpisodeFilter.all;
   EpisodeSort _sort = EpisodeSort.newest;
+  bool _isSearchOpen = false;
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
   bool _sortLoadedFromMetadata = false;
   bool _initialAutoScrollDone = false;
   final ItemScrollController _itemScrollController = ItemScrollController();
@@ -2866,6 +3032,7 @@ class _EpisodesPageState extends State<EpisodesPage> {
   List<dynamic>? _cachedEpisodesSource;
   EpisodeFilter? _cachedFilter;
   EpisodeSort? _cachedSort;
+  String? _cachedSearchQuery;
   bool? _cachedIsOffline;
   int _cachedTotalCount = 0;
   List<Map<String, dynamic>> _cachedVisibleEpisodes = const [];
@@ -2875,9 +3042,17 @@ class _EpisodesPageState extends State<EpisodesPage> {
   @override
   void initState() {
     super.initState();
+    _searchController.addListener(_onSearchChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _podcastState?.refreshConnectivityStatus();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -2936,6 +3111,84 @@ class _EpisodesPageState extends State<EpisodesPage> {
       case EpisodeFilter.unplayed:
         return !isPlayed;
     }
+  }
+
+  bool _matchesSearch(Map<String, dynamic> episode) {
+    final query = _searchQuery.trim().toLowerCase();
+    if (query.isEmpty) return true;
+
+    final title = (episode['title'] ?? '').toString().toLowerCase();
+    final description = (episode['description'] ?? '').toString().toLowerCase();
+    return title.contains(query) || description.contains(query);
+  }
+
+  void _onSearchChanged() {
+    final next = _searchController.text.trim();
+    if (next == _searchQuery) return;
+    setState(() {
+      _searchQuery = next;
+    });
+  }
+
+  List<InlineSpan> _buildHighlightedSpans(String text, TextStyle baseStyle) {
+    final query = _searchQuery.trim();
+    if (query.isEmpty || text.isEmpty) {
+      return [TextSpan(text: text, style: baseStyle)];
+    }
+
+    final lowerText = text.toLowerCase();
+    final lowerQuery = query.toLowerCase();
+    final highlightStyle = baseStyle.copyWith(
+      fontWeight: FontWeight.w700,
+      backgroundColor: Colors.yellow.withValues(alpha: 0.35),
+    );
+
+    final spans = <InlineSpan>[];
+    var start = 0;
+    while (true) {
+      final index = lowerText.indexOf(lowerQuery, start);
+      if (index < 0) {
+        if (start < text.length) {
+          spans.add(TextSpan(text: text.substring(start), style: baseStyle));
+        }
+        break;
+      }
+
+      if (index > start) {
+        spans.add(
+          TextSpan(text: text.substring(start, index), style: baseStyle),
+        );
+      }
+
+      final matchEnd = index + lowerQuery.length;
+      spans.add(
+        TextSpan(
+          text: text.substring(index, matchEnd),
+          style: highlightStyle,
+        ),
+      );
+      start = matchEnd;
+    }
+
+    return spans;
+  }
+
+  Widget _buildHighlightedText(
+    BuildContext context, {
+    required String text,
+    TextStyle? style,
+    int? maxLines,
+    TextOverflow overflow = TextOverflow.clip,
+  }) {
+    final baseStyle = DefaultTextStyle.of(context).style.merge(style);
+    return RichText(
+      text: TextSpan(
+        style: baseStyle,
+        children: _buildHighlightedSpans(text, baseStyle),
+      ),
+      maxLines: maxLines,
+      overflow: overflow,
+    );
   }
 
   String _sortLabel(EpisodeSort sort) {
@@ -3174,6 +3427,7 @@ class _EpisodesPageState extends State<EpisodesPage> {
         !identical(_cachedEpisodesSource, episodesSource) ||
         _cachedFilter != _filter ||
         _cachedSort != _sort ||
+      _cachedSearchQuery != _searchQuery ||
         _cachedIsOffline != isOffline;
     if (!shouldRefresh) return;
 
@@ -3190,7 +3444,7 @@ class _EpisodesPageState extends State<EpisodesPage> {
       if (isOffline && !podcastState.isEpisodeDownloaded(episode)) {
         return false;
       }
-      return _matchesFilter(episode);
+      return _matchesFilter(episode) && _matchesSearch(episode);
     }).toList();
     if (_sort == EpisodeSort.titleAsc) {
       filtered.sort(
@@ -3223,6 +3477,7 @@ class _EpisodesPageState extends State<EpisodesPage> {
     _cachedEpisodesSource = episodesSource;
     _cachedFilter = _filter;
     _cachedSort = _sort;
+    _cachedSearchQuery = _searchQuery;
     _cachedIsOffline = isOffline;
     _cachedTotalCount = episodeMaps.length;
     _cachedVisibleEpisodes = filtered;
@@ -3306,10 +3561,20 @@ class _EpisodesPageState extends State<EpisodesPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          podcast['title'] ?? "Episodes",
-          overflow: TextOverflow.ellipsis,
-        ),
+        title: _isSearchOpen
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                textInputAction: TextInputAction.search,
+                decoration: const InputDecoration(
+                  hintText: 'Search title or description',
+                  border: InputBorder.none,
+                ),
+              )
+            : Text(
+                podcast['title'] ?? 'Episodes',
+                overflow: TextOverflow.ellipsis,
+              ),
         actions: [
           if (isOffline)
             Padding(
@@ -3330,6 +3595,19 @@ class _EpisodesPageState extends State<EpisodesPage> {
                 ),
               ),
             ),
+          IconButton(
+            tooltip: _isSearchOpen ? 'Close search' : 'Search episodes',
+            icon: Icon(_isSearchOpen ? Icons.close : Icons.search),
+            onPressed: () {
+              setState(() {
+                if (_isSearchOpen) {
+                  _searchController.clear();
+                  _searchQuery = '';
+                }
+                _isSearchOpen = !_isSearchOpen;
+              });
+            },
+          ),
         ],
       ),
       body: Column(
@@ -3537,8 +3815,9 @@ class _EpisodesPageState extends State<EpisodesPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            episode['title'] ?? '',
+                          _buildHighlightedText(
+                            context,
+                            text: (episode['title'] ?? '').toString(),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: isPlayed
@@ -3744,8 +4023,9 @@ class _EpisodesPageState extends State<EpisodesPage> {
                               return Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    descriptionText,
+                                  _buildHighlightedText(
+                                    context,
+                                    text: descriptionText,
                                     style: baseStyle,
                                     maxLines: isDescriptionExpanded ? null : 3,
                                     overflow: isDescriptionExpanded
