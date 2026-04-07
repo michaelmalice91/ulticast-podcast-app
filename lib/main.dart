@@ -2788,6 +2788,68 @@ class _PodcastsPageState extends State<PodcastsPage> {
     return episodes;
   }
 
+  DateTime? _parseEpisodeDate(dynamic raw) {
+    final value = (raw ?? '').toString().trim();
+    if (value.isEmpty) return null;
+
+    final direct = DateTime.tryParse(value);
+    if (direct != null) return direct;
+
+    final formats = [
+      DateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'", 'en_US'),
+      DateFormat("EEE, dd MMM yyyy HH:mm:ss Z", 'en_US'),
+      DateFormat('yyyy-MM-dd HH:mm:ss', 'en_US'),
+    ];
+
+    for (final format in formats) {
+      try {
+        return format.parse(value, true).toLocal();
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  List<Map<String, dynamic>> _sortedEpisodesForPodcast(
+    String feedUrl,
+    Map<String, dynamic> podcast,
+    PodcastAppState podcastState,
+  ) {
+    final episodes = _episodeMaps(podcast)
+        .map((episode) => Map<String, dynamic>.from(episode))
+        .toList();
+
+    final sortPref = podcastState.episodeSortForPodcast(feedUrl);
+    if (sortPref == 'titleAsc') {
+      episodes.sort(
+        (a, b) => (a['title'] ?? '')
+            .toString()
+            .toLowerCase()
+            .compareTo((b['title'] ?? '').toString().toLowerCase()),
+      );
+      return episodes;
+    }
+
+    final parsedDateCache = <Map<String, dynamic>, DateTime>{};
+    DateTime cachedDate(Map<String, dynamic> episode) {
+      return parsedDateCache.putIfAbsent(
+        episode,
+        () => _parseEpisodeDate(episode['pubDate']) ??
+            DateTime.fromMillisecondsSinceEpoch(0),
+      );
+    }
+
+    episodes.sort((a, b) {
+      final dateA = cachedDate(a);
+      final dateB = cachedDate(b);
+      if (sortPref == 'oldest') {
+        return dateA.compareTo(dateB);
+      }
+      return dateB.compareTo(dateA);
+    });
+
+    return episodes;
+  }
+
   int? _episodeIndexToPlay(List<Map<String, dynamic>> episodes) {
     if (episodes.isEmpty) return null;
 
@@ -2814,8 +2876,12 @@ class _PodcastsPageState extends State<PodcastsPage> {
     return 0;
   }
 
-  void _playPodcastFromList(Map<String, dynamic> podcast) {
-    final episodes = _episodeMaps(podcast);
+  void _playPodcastFromList(
+    String feedUrl,
+    Map<String, dynamic> podcast,
+    PodcastAppState podcastState,
+  ) {
+    final episodes = _sortedEpisodesForPodcast(feedUrl, podcast, podcastState);
     final initialIndex = _episodeIndexToPlay(episodes);
     if (initialIndex == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -2853,8 +2919,12 @@ class _PodcastsPageState extends State<PodcastsPage> {
       context,
       '/audio',
       arguments: {
-        'podcast': podcast,
+        'podcast': {
+          ...podcast,
+          'episodes': episodes,
+        },
         'episode': selectedEpisode,
+        'queueEpisodes': episodes,
         'play': true,
       },
     );
@@ -2975,7 +3045,11 @@ class _PodcastsPageState extends State<PodcastsPage> {
                       IconButton(
                         tooltip: 'Play',
                         onPressed: () {
-                          _playPodcastFromList(podcast);
+                          _playPodcastFromList(
+                            feedUrl,
+                            podcast,
+                            podcastState,
+                          );
                         },
                         icon: const Icon(Icons.play_arrow),
                       ),
@@ -3512,6 +3586,14 @@ class _EpisodesPageState extends State<EpisodesPage> {
     });
   }
 
+  List<Map<String, dynamic>> _audioRouteQueueEpisodes(
+    List<Map<String, dynamic>> visibleEpisodes,
+  ) {
+    return visibleEpisodes
+        .map((episode) => Map<String, dynamic>.from(episode))
+        .toList(growable: false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
@@ -3803,6 +3885,7 @@ class _EpisodesPageState extends State<EpisodesPage> {
                         arguments: {
                           'podcast': podcast,
                           'episode': episode,
+                          'queueEpisodes': _audioRouteQueueEpisodes(visibleEpisodes),
                           'play': false,
                         },
                       );
@@ -4003,6 +4086,7 @@ class _EpisodesPageState extends State<EpisodesPage> {
                                         arguments: {
                                           'podcast': podcast,
                                           'episode': episode,
+                                          'queueEpisodes': _audioRouteQueueEpisodes(visibleEpisodes),
                                           'play': true,
                                         },
                                       );
@@ -4263,6 +4347,19 @@ class _AudioPageState extends State<AudioPage> {
     if (args != null) {
       currentPodcast = args['podcast'] as Map<String, dynamic>?;
       currentEpisode = args['episode'] as Map<String, dynamic>?;
+      final rawQueueEpisodes = args['queueEpisodes'] as List<dynamic>?;
+
+      if (currentPodcast != null && rawQueueEpisodes != null && rawQueueEpisodes.isNotEmpty) {
+        final queueEpisodes = rawQueueEpisodes
+            .whereType<Map>()
+            .map((ep) => Map<String, dynamic>.from(ep))
+            .toList(growable: false);
+        currentPodcast = {
+          ...currentPodcast!,
+          'episodes': queueEpisodes,
+        };
+      }
+
       if (currentPodcast != null && currentEpisode != null) {
         final episodes = currentPodcast!['episodes'] as List<dynamic>;
         final selectedGuid = currentEpisode!['guid']?.toString();
