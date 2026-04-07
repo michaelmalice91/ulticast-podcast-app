@@ -113,6 +113,8 @@ class MediaState {
 
 /// An [AudioHandler] for playing a single item.
 class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
+  static const Duration _headsetSeekForward = Duration(seconds: 30);
+  static const Duration _headsetSeekBackward = Duration(seconds: 10);
   final _player = AudioPlayer();
   List<dynamic> _episodes = [];
   int _currentIndex = -1;
@@ -619,6 +621,11 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
 
   @override
   Future<void> skipToPrevious() async {
+    final target = _player.position - _headsetSeekBackward;
+    await seek(target < Duration.zero ? Duration.zero : target);
+  }
+
+  Future<void> skipToPreviousEpisode() async {
     if (_episodes.isEmpty) return;
     final prevIndex = _currentIndex - 1;
     if (prevIndex < 0 || prevIndex >= _episodes.length) return;
@@ -640,6 +647,15 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
 
   @override
   Future<void> skipToNext() async {
+    final duration = _player.duration;
+    final rawTarget = _player.position + _headsetSeekForward;
+    final target = duration != null && duration > Duration.zero
+        ? (rawTarget > duration ? duration : rawTarget)
+        : rawTarget;
+    await seek(target);
+  }
+
+  Future<void> skipToNextEpisode() async {
     if (_episodes.isEmpty) return;
     final nextIndex = _currentIndex + 1;
     if (nextIndex < 0 || nextIndex >= _episodes.length) return;
@@ -2731,6 +2747,32 @@ class _PodcastsPageState extends State<PodcastsPage> {
   bool selectionMode = false;
   List<String> selectedFeeds = [];
 
+  Future<bool> _confirmDeletePodcast(String title) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Delete Podcast?'),
+          content: Text(
+            'Remove "$title" and its saved episode state from the app?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+    return confirmed == true;
+  }
+
   Widget _offlineArtwork({double size = 50}) {
     return Container(
       width: size,
@@ -3055,7 +3097,11 @@ class _PodcastsPageState extends State<PodcastsPage> {
                       ),
                       IconButton(
                         tooltip: 'Delete',
-                        onPressed: () {
+                        onPressed: () async {
+                          final title = (podcast['title'] ?? 'this podcast')
+                              .toString();
+                          final confirmed = await _confirmDeletePodcast(title);
+                          if (!confirmed) return;
                           podcastState.clearPodcast(feedUrl);
                         },
                         icon: const Icon(Icons.delete_outline),
@@ -3412,7 +3458,35 @@ class _EpisodesPageState extends State<EpisodesPage> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop('delete'),
+              onPressed: () async {
+                final confirmed = await showDialog<bool>(
+                  context: dialogContext,
+                  builder: (confirmContext) {
+                    return AlertDialog(
+                      title: const Text('Delete Episode?'),
+                      content: Text(
+                        'Delete "${(episode['title'] ?? 'this episode').toString()}" from this podcast?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(confirmContext).pop(false),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(confirmContext).pop(true),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.red,
+                          ),
+                          child: const Text('Delete'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+                if (confirmed == true && dialogContext.mounted) {
+                  Navigator.of(dialogContext).pop('delete');
+                }
+              },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text('Delete'),
             ),
@@ -4183,6 +4257,121 @@ class _AudioPageState extends State<AudioPage> {
   StreamSubscription<Duration>? _positionSub;
   StreamSubscription<PlaybackState>? _playbackSub;
 
+  int _readPositionMs(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
+  }
+
+  String _selectedAudioUrl() {
+    // Only return audio URL if route is initialized
+    if (!_routeInitialized) return '';
+    return (currentEpisode?['audioUrl'] ?? '').toString();
+  }
+
+  bool _isSelectedEpisodeActive(MediaItem? mediaItem) {
+    final selectedAudioUrl = _selectedAudioUrl();
+    if (selectedAudioUrl.isEmpty) return true;
+    return mediaItem?.id == selectedAudioUrl;
+  }
+
+  MediaItem? _selectedRouteMediaItem() {
+    final podcast = currentPodcast;
+    final episode = currentEpisode;
+    if (podcast == null || episode == null) return null;
+    final audioUrl = (episode['audioUrl'] ?? '').toString();
+    if (audioUrl.isEmpty) return null;
+    
+    // Look up the full episode data from podcast episodes list to ensure
+    // we have all fields including durationMs
+    final episodes = podcast['episodes'] as List<dynamic>?;
+    Map<String, dynamic> episodeToUse = episode;
+    if (episodes != null && episodes.isNotEmpty) {
+      final selectedGuid = episode['guid']?.toString();
+      try {
+        final fullEpisode = episodes.firstWhere(
+          (ep) {
+            if (ep is! Map) return false;
+            final map = Map<String, dynamic>.from(ep);
+            final guid = map['guid']?.toString();
+            final url = map['audioUrl']?.toString();
+            
+            if (selectedGuid != null && selectedGuid.isNotEmpty && guid == selectedGuid) {
+              return true;
+            }
+            if (audioUrl.isNotEmpty && url == audioUrl) {
+              return true;
+            }
+            return false;
+          },
+        );
+        if (fullEpisode is Map) {
+          episodeToUse = Map<String, dynamic>.from(fullEpisode);
+        }
+      } catch (e) {
+        // firstWhere throws if not found, use original episode
+      }
+    }
+    
+    return _buildMediaItem(episodeToUse, podcast);
+  }
+
+  MediaItem? _displayMediaItemFor(MediaItem? activeMediaItem) {
+    // If route isn't initialized yet, just use active media item
+    if (!_routeInitialized) {
+      return activeMediaItem;
+    }
+    
+    if (_isSelectedEpisodeActive(activeMediaItem)) {
+      return activeMediaItem ?? _selectedRouteMediaItem();
+    }
+    return _selectedRouteMediaItem() ?? activeMediaItem;
+  }
+
+  Duration _uiPositionFor(
+    MediaItem? mediaItem,
+    Duration livePosition,
+    PlaybackState? playbackState,
+  ) {
+    if (!_isSelectedEpisodeActive(mediaItem)) {
+      final fallbackItem = _selectedRouteMediaItem();
+      final savedMs = _readPositionMs(currentEpisode?['lastPositionMs']);
+      if (savedMs <= 0) return Duration.zero;
+      final duration = fallbackItem?.duration;
+      if (duration != null && duration > Duration.zero) {
+        final cappedMs = savedMs > duration.inMilliseconds
+            ? duration.inMilliseconds
+            : savedMs;
+        return Duration(milliseconds: cappedMs);
+      }
+      return Duration(milliseconds: savedMs);
+    }
+
+    final playbackPosition = playbackState?.updatePosition ?? Duration.zero;
+    final resolvedLive = livePosition > Duration.zero
+        ? livePosition
+        : playbackPosition;
+    if (resolvedLive > Duration.zero) {
+      return resolvedLive;
+    }
+
+    final savedMs = _readPositionMs(
+      mediaItem?.extras?['lastPositionMs'] ?? currentEpisode?['lastPositionMs'],
+    );
+    if (savedMs <= 0) return Duration.zero;
+
+    final duration = mediaItem?.duration;
+    if (duration != null && duration > Duration.zero) {
+      final cappedMs = savedMs > duration.inMilliseconds
+          ? duration.inMilliseconds
+          : savedMs;
+      return Duration(milliseconds: cappedMs);
+    }
+
+    return Duration(milliseconds: savedMs);
+  }
+
   Future<void> _persistCurrentPosition(Duration position, {bool force = false}) async {
     final activeItem = await _audioHandler.mediaItem.first;
     final audioUrl = activeItem?.id ?? '';
@@ -4228,9 +4417,9 @@ class _AudioPageState extends State<AudioPage> {
     final position = await AudioService.position.first;
     await _persistCurrentPosition(position, force: true);
     if (next) {
-      await _audioHandler.skipToNext();
+      await _audioHandler.skipToNextEpisode();
     } else {
-      await _audioHandler.skipToPrevious();
+      await _audioHandler.skipToPreviousEpisode();
     }
   }
 
@@ -4461,10 +4650,10 @@ class _AudioPageState extends State<AudioPage> {
               ),
 
             // Title
-            StreamBuilder<MediaItem?>(
-              stream: _audioHandler.mediaItem,
+            StreamBuilder<MediaState>(
+              stream: _mediaStateStream,
               builder: (context, snapshot) {
-                final mediaItem = snapshot.data;
+                final mediaItem = snapshot.data?.mediaItem;
                 return Text(mediaItem?.title ?? episode?['title'] ?? '');
               },
             ),
@@ -4527,7 +4716,7 @@ class _AudioPageState extends State<AudioPage> {
                   status = 'paused';
                 }
 
-                return Text('Status: $status');
+                return Text('$status');
               },
             ),
           ],
@@ -4537,10 +4726,14 @@ class _AudioPageState extends State<AudioPage> {
   }
 
   Stream<MediaState> get _mediaStateStream =>
-      Rx.combineLatest2<MediaItem?, Duration, MediaState>(
+      Rx.combineLatest3<MediaItem?, Duration, PlaybackState, MediaState>(
         _audioHandler.mediaItem,
         AudioService.position,
-        (mediaItem, position) => MediaState(mediaItem, position),
+        _audioHandler.playbackState,
+        (activeMediaItem, position, playbackState) => MediaState(
+          _displayMediaItemFor(activeMediaItem),
+          _uiPositionFor(activeMediaItem, position, playbackState),
+        ),
       );
 
   IconButton _button(IconData iconData, VoidCallback onPressed) =>
