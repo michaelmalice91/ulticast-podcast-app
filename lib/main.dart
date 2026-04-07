@@ -1073,6 +1073,7 @@ class PodcastAppState extends ChangeNotifier {
   bool _isOffline = false;
   bool _isRefreshingConnectivity = false;
   DateTime? _lastConnectivityRefreshAt;
+  bool _isFeedSyncInProgress = false;
   bool get isOffline => _isOffline;
 
   bool _isDarkMode = false;
@@ -1098,6 +1099,67 @@ class PodcastAppState extends ChangeNotifier {
     final exists = File(path).existsSync();
     _audioFileExistsCache[path] = exists;
     return exists;
+  }
+
+  bool _syncLocalAudioStateAcrossPodcasts(
+    String audioUrl, {
+    String? localAudioPath,
+    bool? autoCachedAudio,
+  }) {
+    final normalizedTarget = _normalizeAudioUrl(audioUrl);
+    var changed = false;
+
+    for (final podcast in _podcasts.values) {
+      final episodes = podcast['episodes'] as List<dynamic>?;
+      if (episodes == null || episodes.isEmpty) continue;
+
+      final updatedEpisodes = episodes.map((entry) {
+        if (entry is! Map) return entry;
+        final map = Map<String, dynamic>.from(entry as Map);
+        final episodeAudioUrl =
+            _normalizeAudioUrl((map['audioUrl'] ?? '').toString());
+        if (episodeAudioUrl != normalizedTarget) return map;
+
+        if (localAudioPath != null &&
+            (map['localAudioPath'] ?? '').toString() != localAudioPath) {
+          map['localAudioPath'] = localAudioPath;
+          changed = true;
+        }
+        if (autoCachedAudio != null && map['autoCachedAudio'] != autoCachedAudio) {
+          map['autoCachedAudio'] = autoCachedAudio;
+          changed = true;
+        }
+        return map;
+      }).toList();
+
+      podcast['episodes'] = updatedEpisodes;
+    }
+
+    return changed;
+  }
+
+  String? _existingLocalAudioPathForAudioUrl(String audioUrl) {
+    final normalizedTarget = _normalizeAudioUrl(audioUrl);
+
+    for (final podcast in _podcasts.values) {
+      final episodes = podcast['episodes'] as List<dynamic>?;
+      if (episodes == null || episodes.isEmpty) continue;
+
+      for (final raw in episodes) {
+        if (raw is! Map) continue;
+        final episode = Map<String, dynamic>.from(raw as Map);
+        final episodeAudioUrl =
+            _normalizeAudioUrl((episode['audioUrl'] ?? '').toString());
+        if (episodeAudioUrl != normalizedTarget) continue;
+
+        final localPath = (episode['localAudioPath'] ?? '').toString();
+        if (localPath.isNotEmpty && _fileExistsCached(localPath)) {
+          return localPath;
+        }
+      }
+    }
+
+    return null;
   }
 
   MediaItem _mediaItemFromEpisode(
@@ -1432,10 +1494,13 @@ class PodcastAppState extends ChangeNotifier {
   ) async {
     if (audioUrl.isEmpty) return;
     final normalizedAudioUrl = _normalizeAudioUrl(audioUrl);
+    var anyUpdated = false;
 
-    Future<bool> tryUpdateInPodcast(Map<String, dynamic> podcast) async {
+    bool tryUpdateInPodcast(Map<String, dynamic> podcast) {
       final episodes = podcast['episodes'] as List<dynamic>?;
       if (episodes == null) return false;
+
+      var podcastUpdated = false;
 
       for (final ep in episodes) {
         if (ep is! Map) continue;
@@ -1457,29 +1522,34 @@ class PodcastAppState extends ChangeNotifier {
           episode['lastPositionMs'] = 0;
           _audioHandler.setSavedPosition(audioUrl, 0);
         } else {
+          episode['played'] = false;
           episode['lastPositionMs'] = safePositionMs;
           _audioHandler.setSavedPosition(audioUrl, safePositionMs);
         }
 
-        await saveToStorage();
-        notifyListeners();
-        return true;
+        podcastUpdated = true;
       }
 
-      return false;
+      return podcastUpdated;
     }
 
     if (feedUrl != null && feedUrl.isNotEmpty) {
       final targetPodcast = _podcasts[feedUrl];
-      if (targetPodcast != null && await tryUpdateInPodcast(targetPodcast)) {
-        return;
+      if (targetPodcast != null) {
+        anyUpdated = tryUpdateInPodcast(targetPodcast) || anyUpdated;
       }
     }
 
+    final targetPodcastRef =
+        (feedUrl != null && feedUrl.isNotEmpty) ? _podcasts[feedUrl] : null;
     for (final podcast in _podcasts.values) {
-      if (await tryUpdateInPodcast(podcast)) {
-        return;
-      }
+      if (identical(podcast, targetPodcastRef)) continue;
+      anyUpdated = tryUpdateInPodcast(podcast) || anyUpdated;
+    }
+
+    if (anyUpdated) {
+      await saveToStorage();
+      notifyListeners();
     }
 
   }
@@ -1491,10 +1561,13 @@ class PodcastAppState extends ChangeNotifier {
   }) async {
     if (audioUrl.isEmpty) return;
     final normalizedAudioUrl = _normalizeAudioUrl(audioUrl);
+    var anyUpdated = false;
 
-    Future<bool> tryMarkInPodcast(Map<String, dynamic> podcast) async {
+    bool tryMarkInPodcast(Map<String, dynamic> podcast) {
       final episodes = podcast['episodes'] as List<dynamic>?;
       if (episodes == null) return false;
+
+      var podcastUpdated = false;
 
       for (final ep in episodes) {
         if (ep is! Map) continue;
@@ -1510,26 +1583,31 @@ class PodcastAppState extends ChangeNotifier {
           episode['lastPositionMs'] = 0;
           _audioHandler.setSavedPosition(audioUrl, 0);
         }
-        await saveToStorage();
-        notifyListeners();
-        return true;
+        podcastUpdated = true;
       }
 
-      return false;
+      return podcastUpdated;
     }
 
     if (feedUrl != null && feedUrl.isNotEmpty) {
       final targetPodcast = _podcasts[feedUrl];
-      if (targetPodcast != null && await tryMarkInPodcast(targetPodcast)) {
-        return;
+      if (targetPodcast != null) {
+        anyUpdated = tryMarkInPodcast(targetPodcast) || anyUpdated;
       }
     }
 
+    final targetPodcastRef =
+        (feedUrl != null && feedUrl.isNotEmpty) ? _podcasts[feedUrl] : null;
     for (final podcast in _podcasts.values) {
-      if (await tryMarkInPodcast(podcast)) {
-        return;
-      }
+      if (identical(podcast, targetPodcastRef)) continue;
+      anyUpdated = tryMarkInPodcast(podcast) || anyUpdated;
     }
+
+    if (anyUpdated) {
+      await saveToStorage();
+      notifyListeners();
+    }
+
   }
 
 
@@ -1543,6 +1621,7 @@ class PodcastAppState extends ChangeNotifier {
       feedUrl: feedUrl,
     );
   }
+
 
   Future<void> resetEpisodeProgressByAudioUrl(
     String audioUrl, {
@@ -1737,6 +1816,228 @@ class PodcastAppState extends ChangeNotifier {
     return null;
   }
 
+  DateTime? _parseEpisodeDate(dynamic raw) {
+    final value = (raw ?? '').toString().trim();
+    if (value.isEmpty) return null;
+
+    final direct = DateTime.tryParse(value);
+    if (direct != null) return direct;
+
+    final formats = [
+      DateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'", 'en_US'),
+      DateFormat('EEE, dd MMM yyyy HH:mm:ss Z', 'en_US'),
+      DateFormat('yyyy-MM-dd HH:mm:ss', 'en_US'),
+    ];
+
+    for (final format in formats) {
+      try {
+        return format.parse(value, true).toLocal();
+      } catch (_) {}
+    }
+
+    return null;
+  }
+
+  void _sortEpisodesNewestFirst(List<Map<String, dynamic>> episodes) {
+    final parsedDateCache = <Map<String, dynamic>, DateTime>{};
+    DateTime cachedDate(Map<String, dynamic> episode) {
+      return parsedDateCache.putIfAbsent(
+        episode,
+        () => _parseEpisodeDate(episode['pubDate']) ??
+            DateTime.fromMillisecondsSinceEpoch(0),
+      );
+    }
+
+    episodes.sort((a, b) => cachedDate(b).compareTo(cachedDate(a)));
+  }
+
+  String _episodeIdentityKey(Map<String, dynamic> episode) {
+    final normalizedUrl = _normalizeAudioUrl(
+      (episode['audioUrl'] ?? '').toString(),
+    );
+    if (normalizedUrl.isNotEmpty) return 'url:$normalizedUrl';
+
+    final guid = (episode['guid'] ?? '').toString().trim();
+    if (guid.isNotEmpty) return 'guid:$guid';
+
+    final title = (episode['title'] ?? '').toString().trim().toLowerCase();
+    final pubDate = (episode['pubDate'] ?? '').toString().trim();
+    return 'fallback:$title|$pubDate';
+  }
+
+  List<Map<String, dynamic>> _mergeFetchedEpisodesWithExisting(
+    List<dynamic> existingEpisodes,
+    List<Map<String, dynamic>> fetchedEpisodes,
+  ) {
+    final existingByKey = <String, Map<String, dynamic>>{};
+    for (final raw in existingEpisodes) {
+      if (raw is! Map) continue;
+      final existing = Map<String, dynamic>.from(raw as Map);
+      existingByKey[_episodeIdentityKey(existing)] = existing;
+    }
+
+    final merged = <Map<String, dynamic>>[];
+    final seenKeys = <String>{};
+
+    for (final fetched in fetchedEpisodes) {
+      final key = _episodeIdentityKey(fetched);
+      final existing = existingByKey[key];
+      if (existing != null) {
+        merged.add({
+          ...existing,
+          ...fetched,
+          'lastPositionMs': existing['lastPositionMs'] ?? fetched['lastPositionMs'] ?? 0,
+          'played': existing['played'] ?? fetched['played'] ?? false,
+          'localAudioPath': existing['localAudioPath'] ?? fetched['localAudioPath'],
+          'autoCachedAudio': existing['autoCachedAudio'] ?? fetched['autoCachedAudio'] ?? false,
+          'localImagePath': existing['localImagePath'] ?? fetched['localImagePath'],
+        });
+      } else {
+        merged.add(Map<String, dynamic>.from(fetched));
+      }
+      seenKeys.add(key);
+    }
+
+    for (final entry in existingByKey.entries) {
+      if (!seenKeys.contains(entry.key)) {
+        merged.add(Map<String, dynamic>.from(entry.value));
+      }
+    }
+
+    _sortEpisodesNewestFirst(merged);
+    return merged;
+  }
+
+  List<String> _resolvedCombinedSources(
+    String combinedFeedKey,
+    Map<String, dynamic> combinedPodcast,
+  ) {
+    final explicitSources = (combinedPodcast['sourceFeedUrls'] as List<dynamic>? ?? const [])
+        .map((e) => e.toString())
+        .where((feed) => _podcasts.containsKey(feed))
+        .where((feed) => feed.startsWith('http://') || feed.startsWith('https://'))
+        .toList();
+    if (explicitSources.isNotEmpty) {
+      return explicitSources;
+    }
+
+    final title = (combinedPodcast['title'] ?? combinedFeedKey).toString();
+    final pieces = title
+        .split(' + ')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+    if (pieces.length < 2) return const [];
+
+    final inferred = <String>[];
+    for (final piece in pieces) {
+      for (final entry in _podcasts.entries) {
+        final key = entry.key;
+        if (!(key.startsWith('http://') || key.startsWith('https://'))) continue;
+        final sourceTitle = (entry.value['title'] ?? '').toString().trim();
+        if (sourceTitle == piece && !inferred.contains(key)) {
+          inferred.add(key);
+          break;
+        }
+      }
+    }
+    return inferred.length >= 2 ? inferred : const [];
+  }
+
+  void _rebuildCombinedPodcastFromSources(
+    String combinedFeedKey,
+    Map<String, dynamic> combinedPodcast,
+  ) {
+    final sources = _resolvedCombinedSources(combinedFeedKey, combinedPodcast);
+    if (sources.isEmpty) return;
+
+    final existingCombinedEpisodes =
+        (combinedPodcast['episodes'] as List<dynamic>? ?? const []);
+    final combinedStateByKey = <String, Map<String, dynamic>>{};
+    for (final raw in existingCombinedEpisodes) {
+      if (raw is! Map) continue;
+      final episode = Map<String, dynamic>.from(raw as Map);
+      combinedStateByKey[_episodeIdentityKey(episode)] = episode;
+    }
+
+    final sourceEpisodes = <Map<String, dynamic>>[];
+    for (final sourceFeed in sources) {
+      final sourcePodcast = _podcasts[sourceFeed];
+      if (sourcePodcast == null) continue;
+      final sourceTitle = (sourcePodcast['title'] ?? 'Podcast').toString();
+      final episodes = (sourcePodcast['episodes'] as List<dynamic>? ?? const []);
+      for (final raw in episodes) {
+        if (raw is! Map) continue;
+        final episode = Map<String, dynamic>.from(raw as Map);
+        episode['podcastTitle'] =
+            (episode['podcastTitle'] ?? sourceTitle).toString();
+
+        final preserved = combinedStateByKey[_episodeIdentityKey(episode)];
+        if (preserved != null) {
+          final preservedPosition = _readInt(preserved['lastPositionMs']);
+          final sourcePosition = _readInt(episode['lastPositionMs']);
+          if (preservedPosition > sourcePosition) {
+            episode['lastPositionMs'] = preservedPosition;
+          }
+          if ((preserved['played'] ?? false) == true) {
+            episode['played'] = true;
+            episode['lastPositionMs'] = 0;
+          }
+          final preservedLocalPath =
+              (preserved['localAudioPath'] ?? '').toString();
+          final sourceLocalPath = (episode['localAudioPath'] ?? '').toString();
+          if (sourceLocalPath.isEmpty && preservedLocalPath.isNotEmpty) {
+            episode['localAudioPath'] = preservedLocalPath;
+            episode['autoCachedAudio'] =
+                (preserved['autoCachedAudio'] ?? false) == true;
+          }
+        }
+
+        sourceEpisodes.add(episode);
+      }
+    }
+
+    _sortEpisodesNewestFirst(sourceEpisodes);
+
+    combinedPodcast['episodes'] = sourceEpisodes;
+    combinedPodcast['sourceFeedUrls'] = List<String>.from(sources);
+  }
+
+  Future<void> syncFeedsOnStartup() async {
+    if (_isFeedSyncInProgress) return;
+    _isFeedSyncInProgress = true;
+    final online = await hasInternetConnection();
+    if (!online) {
+      _isFeedSyncInProgress = false;
+      return;
+    }
+
+    try {
+      final normalFeedUrls = _podcasts.keys
+          .where((feed) => feed.startsWith('http://') || feed.startsWith('https://'))
+          .toList(growable: false);
+
+      for (final feedUrl in normalFeedUrls) {
+        await loadPodcast(feedUrl, showLoading: false);
+      }
+
+      final combinedKeys = _podcasts.keys
+          .where((feed) => !(feed.startsWith('http://') || feed.startsWith('https://')))
+          .toList(growable: false);
+
+      for (final combinedKey in combinedKeys) {
+        final combinedPodcast = _podcasts[combinedKey];
+        if (combinedPodcast == null) continue;
+        _rebuildCombinedPodcastFromSources(combinedKey, combinedPodcast);
+      }
+
+      await saveToStorage();
+      notifyListeners();
+    } finally {
+      _isFeedSyncInProgress = false;
+    }
+  }
+
   String normalizeTitle(String title) {
     return title
         // apostrophes
@@ -1836,23 +2137,34 @@ class PodcastAppState extends ChangeNotifier {
     }
     if (targetEpisode == null) return null;
 
+    final existingGlobalPath = _existingLocalAudioPathForAudioUrl(audioUrl);
+    if (existingGlobalPath != null && existingGlobalPath.isNotEmpty) {
+      final synced = _syncLocalAudioStateAcrossPodcasts(
+        audioUrl,
+        localAudioPath: existingGlobalPath,
+        autoCachedAudio: autoCache,
+      );
+      if (synced) {
+        await saveToStorage();
+        notifyListeners();
+      }
+      _cacheLog(
+        'Download skipped (reused existing file): ${_shortAudioUrl(audioUrl)} path=$existingGlobalPath auto=$autoCache',
+      );
+      return existingGlobalPath;
+    }
+
     final existingPath = (targetEpisode['localAudioPath'] ?? '').toString();
     if (existingPath.isNotEmpty && _fileExistsCached(existingPath)) {
       _cacheLog(
         'Download skipped (already on disk): ${_shortAudioUrl(audioUrl)} path=$existingPath auto=$autoCache',
       );
-      if (autoCache && (targetEpisode['autoCachedAudio'] != true)) {
-        final updatedEpisodes = episodes.map((entry) {
-          if (entry is! Map) return entry;
-          final map = Map<String, dynamic>.from(entry as Map);
-          final episodeAudioUrl =
-              _normalizeAudioUrl((map['audioUrl'] ?? '').toString());
-          if (episodeAudioUrl == normalizedTarget) {
-            map['autoCachedAudio'] = true;
-          }
-          return map;
-        }).toList();
-        podcast['episodes'] = updatedEpisodes;
+      final synced = _syncLocalAudioStateAcrossPodcasts(
+        audioUrl,
+        localAudioPath: existingPath,
+        autoCachedAudio: autoCache ? true : null,
+      );
+      if (synced) {
         await saveToStorage();
         notifyListeners();
       }
@@ -1900,19 +2212,11 @@ class PodcastAppState extends ChangeNotifier {
       final freshEpisodes = freshPodcast?['episodes'] as List<dynamic>?;
       if (freshPodcast == null || freshEpisodes == null) return null;
 
-      final updatedEpisodes = freshEpisodes.map((entry) {
-        if (entry is! Map) return entry;
-        final map = Map<String, dynamic>.from(entry as Map);
-        final episodeAudioUrl =
-            _normalizeAudioUrl((map['audioUrl'] ?? '').toString());
-        if (episodeAudioUrl == normalizedTarget) {
-          map['localAudioPath'] = file.path;
-          map['autoCachedAudio'] = autoCache;
-        }
-        return map;
-      }).toList();
-
-      freshPodcast['episodes'] = updatedEpisodes;
+      _syncLocalAudioStateAcrossPodcasts(
+        audioUrl,
+        localAudioPath: file.path,
+        autoCachedAudio: autoCache,
+      );
       _audioFileExistsCache[file.path] = true;
       await saveToStorage();
       notifyListeners();
@@ -1974,6 +2278,26 @@ class PodcastAppState extends ChangeNotifier {
     if (!changed) return;
 
     podcast['episodes'] = updatedEpisodes;
+
+    var syncedOthers = false;
+    if (!onlyAutoCached) {
+      syncedOthers = _syncLocalAudioStateAcrossPodcasts(
+            audioUrl,
+            localAudioPath: '',
+            autoCachedAudio: false,
+          ) ||
+          syncedOthers;
+    } else {
+      syncedOthers = _syncLocalAudioStateAcrossPodcasts(
+            audioUrl,
+            autoCachedAudio: false,
+          ) ||
+          syncedOthers;
+    }
+
+    changed = changed || syncedOthers;
+    if (!changed) return;
+
     await saveToStorage();
     notifyListeners();
     _cacheLog(
@@ -2075,6 +2399,7 @@ class PodcastAppState extends ChangeNotifier {
         'feedUrl': title,
         'localImagePath': combinedImagePath,
         'episodes': episodes,
+        'sourceFeedUrls': feedUrls.map((e) => e.toString()).toList(),
         'episodeSort': 'newest',
         'error': null,
       };
@@ -2090,16 +2415,20 @@ class PodcastAppState extends ChangeNotifier {
     }
   }
 
-  Future<void> loadPodcast(String feedUrl) async {
-    _loading[feedUrl] = true;
-    _errors[feedUrl] = null;
-    notifyListeners();
+  Future<void> loadPodcast(String feedUrl, {bool showLoading = true}) async {
+    if (showLoading) {
+      _loading[feedUrl] = true;
+      _errors[feedUrl] = null;
+      notifyListeners();
+    }
 
     final online = await hasInternetConnection();
     if (!online) {
-      _errors[feedUrl] = 'Offline: can\'t refresh this feed right now.';
-      _loading[feedUrl] = false;
-      notifyListeners();
+      if (showLoading) {
+        _errors[feedUrl] = 'Offline: can\'t refresh this feed right now.';
+        _loading[feedUrl] = false;
+        notifyListeners();
+      }
       return;
     }
 
@@ -2142,7 +2471,7 @@ class PodcastAppState extends ChangeNotifier {
           podcastImageFilename,
         );
         final List<dynamic> rawEpisodes = channel['item'] as List<dynamic>;
-        final episodes = rawEpisodes.map((item) {
+        final fetchedEpisodes = rawEpisodes.map((item) {
           var pubDate = parseString(item['pubDate']);
           if (parseString(channel['title']).trim() ==
               "Tell 'Em Steve Dave EP. 1-299") {
@@ -2258,6 +2587,11 @@ class PodcastAppState extends ChangeNotifier {
           };
         }).toList();
 
+        final mergedEpisodes = _mergeFetchedEpisodesWithExisting(
+          existingEpisodes,
+          fetchedEpisodes.cast<Map<String, dynamic>>(),
+        );
+
         // Build podcast object
 
         final podcastData = {
@@ -2266,7 +2600,7 @@ class PodcastAppState extends ChangeNotifier {
           'feedUrl': feedUrl,
           'image': podcastImage,
           'localImagePath': podcastImagePath,
-          'episodes': episodes,
+          'episodes': mergedEpisodes,
           'episodeSort': existingEpisodeSort,
           'error': null,
         };
@@ -2278,10 +2612,14 @@ class PodcastAppState extends ChangeNotifier {
         _errors[feedUrl] = 'Failed to load podcast: ${response.statusCode}';
       }
     } on Exception catch (e) {
-      _errors[feedUrl] = 'Error: ${e.toString()}';
+      if (showLoading) {
+        _errors[feedUrl] = 'Error: ${e.toString()}';
+      }
     } finally {
-      _loading[feedUrl] = false;
-      notifyListeners();
+      if (showLoading) {
+        _loading[feedUrl] = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -2367,6 +2705,7 @@ Future<void> main() async {
   //podcastState.clearAll();
 
   runApp(ChangeNotifierProvider(create: (_) => podcastState, child: MyApp()));
+  unawaited(podcastState.syncFeedsOnStartup());
 
   var wasPlayingBeforeInterruption = false;
   var isPlayingNow = false;
@@ -2435,6 +2774,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _podcastState?.refreshConnectivityStatus();
+      unawaited(_podcastState?.syncFeedsOnStartup());
       return;
     }
 
