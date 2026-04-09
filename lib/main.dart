@@ -128,6 +128,7 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   Future<void> Function(String feedUrl, String audioUrl, bool onlyAutoCached)?
       onDeleteDownloadedAudio;
   final Set<String> _prefetchTriggeredFor = <String>{};
+  Future<void> Function(String audioUrl, int positionMs, String? feedUrl)? onSaveProgress;
   String _shortId(String url) {
     if (url.length <= 72) return url;
     return '${url.substring(0, 36)}...${url.substring(url.length - 24)}';
@@ -193,6 +194,28 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
         _handleEpisodeCompleted();
       }
     });
+    // Save progress on pause/stop (lock screen, Bluetooth, media controls, manual)
+    _player.playingStream.listen((isPlaying) {
+      _onPlayingStateChanged(isPlaying);
+    });
+  }
+
+  Future<void> _onPlayingStateChanged(bool isPlaying) async {
+    if (isPlaying) return; // Only handle pause/stop
+    await _saveCurrentProgress();
+  }
+
+  Future<void> _saveCurrentProgress() async {
+    final current = mediaItem.value;
+    if (current == null || onSaveProgress == null) return;
+
+    final position = _player.position;
+    final feedUrl = current.extras?['feedUrl']?.toString() ?? '';
+    await onSaveProgress!(
+      current.id,
+      position.inMilliseconds,
+      feedUrl.isNotEmpty ? feedUrl : null,
+    );
   }
 
   bool _isAutoCached(MediaItem item) {
@@ -570,6 +593,65 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     );
   }
 
+  Future<void> syncEpisodeQueuePreservingCurrent(
+    List<MediaItem> episodes,
+  ) async {
+    final currentItem = mediaItem.value;
+    final nextEpisodes = List<dynamic>.from(episodes);
+
+    final currentId = currentItem?.id ?? '';
+    final currentExistsInQueue = currentId.isNotEmpty &&
+        nextEpisodes.any((ep) {
+          final media = _toMediaItem(ep);
+          return media?.id == currentId;
+        });
+    if (currentItem != null && !currentExistsInQueue) {
+      nextEpisodes.insert(0, currentItem);
+    }
+
+    _episodes = nextEpisodes;
+
+    final nextSavedPositions = <String, int>{};
+    for (final entry in _episodes) {
+      final item = _toMediaItem(entry);
+      if (item == null) continue;
+      final rawMs = item.extras?['lastPositionMs'];
+      final extrasMs = rawMs is int
+          ? rawMs
+          : (rawMs is String ? int.tryParse(rawMs) ?? 0 : 0);
+      nextSavedPositions[item.id] = _savedPositionsMs[item.id] ?? extrasMs;
+    }
+    _savedPositionsMs
+      ..clear()
+      ..addAll(nextSavedPositions);
+
+    if (_episodes.isEmpty) {
+      _currentIndex = -1;
+      queue.add(const <MediaItem>[]);
+      return;
+    }
+
+    final currentQueueIndex = currentId.isEmpty
+        ? -1
+        : _episodes.indexWhere((ep) {
+            final media = _toMediaItem(ep);
+            return media?.id == currentId;
+          });
+
+    if (currentQueueIndex >= 0) {
+      _currentIndex = currentQueueIndex;
+    } else if (_currentIndex < 0 || _currentIndex >= _episodes.length) {
+      _currentIndex = 0;
+    }
+
+    queue.add(
+      _episodes
+          .map(_toMediaItem)
+          .whereType<MediaItem>()
+          .toList(),
+    );
+  }
+
   Future<void> setAudioSources(
     List<AudioSource> sources, {
     int initialIndex = 0,
@@ -606,13 +688,17 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   }
 
   @override
-  Future<void> pause() => _player.pause();
+  Future<void> pause() async {
+    await _saveCurrentProgress();
+    await _player.pause();
+  }
 
   @override
   Future<void> seek(Duration position) => _player.seek(position);
 
   @override
   Future<void> stop() async {
+    await _saveCurrentProgress();
     await _player.stop();
     _pendingRestorePosition = null;
     _currentIndex = -1;
@@ -1068,6 +1154,8 @@ class PodcastAppState extends ChangeNotifier {
   final Map<String, bool> _downloadingAudio = {};
   final Map<String, bool> _audioFileExistsCache = {};
   final Map<String, String> _episodeSortPrefs = {};
+  final Map<String, String> _episodeFilterPrefs = {};
+  final Map<String, String> _episodeSearchPrefs = {};
   Map<String, dynamic>? _lastPlayedEpisode;
   Timer? _connectivityTimer;
   bool _isOffline = false;
@@ -1405,6 +1493,20 @@ class PodcastAppState extends ChangeNotifier {
         });
       }
 
+      if (saved.containsKey('episode_filter_prefs')) {
+        final prefs = saved['episode_filter_prefs'] as Map<String, dynamic>;
+        prefs.forEach((key, value) {
+          _episodeFilterPrefs[key] = value.toString();
+        });
+      }
+
+      if (saved.containsKey('episode_search_prefs')) {
+        final prefs = saved['episode_search_prefs'] as Map<String, dynamic>;
+        prefs.forEach((key, value) {
+          _episodeSearchPrefs[key] = value.toString();
+        });
+      }
+
       if (saved.containsKey('dark_mode')) {
         _isDarkMode = saved['dark_mode'] == true;
       }
@@ -1455,6 +1557,8 @@ class PodcastAppState extends ChangeNotifier {
       'cached_images': _cachedImages,
       'dark_mode': _isDarkMode,
       'episode_sort_prefs': _episodeSortPrefs,
+      'episode_filter_prefs': _episodeFilterPrefs,
+      'episode_search_prefs': _episodeSearchPrefs,
       'last_played_episode': _lastPlayedEpisode,
     };
     await _storageFile.writeAsString(jsonEncode(data));
@@ -1465,6 +1569,14 @@ class PodcastAppState extends ChangeNotifier {
             _podcasts[feedUrl]?['episodeSort'] ??
             'newest')
         .toString();
+  }
+
+  String episodeFilterForPodcast(String feedUrl) {
+    return (_episodeFilterPrefs[feedUrl] ?? 'all').toString();
+  }
+
+  String episodeSearchForPodcast(String feedUrl) {
+    return (_episodeSearchPrefs[feedUrl] ?? '').toString();
   }
 
   Future<void> setDarkMode(bool enabled) async {
@@ -1483,6 +1595,24 @@ class PodcastAppState extends ChangeNotifier {
     if (podcast != null) {
       podcast['episodeSort'] = episodeSort;
     }
+    await saveToStorage();
+    notifyListeners();
+  }
+
+  Future<void> setEpisodeFilterForPodcast(
+    String feedUrl,
+    String episodeFilter,
+  ) async {
+    _episodeFilterPrefs[feedUrl] = episodeFilter;
+    await saveToStorage();
+    notifyListeners();
+  }
+
+  Future<void> setEpisodeSearchForPodcast(
+    String feedUrl,
+    String searchQuery,
+  ) async {
+    _episodeSearchPrefs[feedUrl] = searchQuery;
     await saveToStorage();
     notifyListeners();
   }
@@ -2643,6 +2773,8 @@ class PodcastAppState extends ChangeNotifier {
 
 late AudioPlayerHandler _audioHandler;
 final GlobalKey<NavigatorState> _appNavigatorKey = GlobalKey<NavigatorState>();
+final RouteObserver<ModalRoute<void>> _routeObserver =
+  RouteObserver<ModalRoute<void>>();
 
 Future<void> main() async {
   // Required when using async in main()
@@ -2694,6 +2826,13 @@ Future<void> main() async {
     messenger?.hideCurrentSnackBar();
     messenger?.showSnackBar(SnackBar(content: Text(message)));
   };
+  _audioHandler.onSaveProgress = (audioUrl, positionMs, feedUrl) {
+    return podcastState.savePlaybackProgressByAudioUrl(
+      audioUrl,
+      positionMs,
+      feedUrl: feedUrl,
+    );
+  };
 
   final startupLog =
       '[LocalCache][Main] Logging active. Play an episode and search logs for LocalCache';
@@ -2716,21 +2855,20 @@ Future<void> main() async {
   // Optionally: listen for interruptions globally
   session.interruptionEventStream.listen((event) {
     if (event.begin) {
-      if (event.type == AudioInterruptionType.pause ||
-          event.type == AudioInterruptionType.duck) {
-        wasPlayingBeforeInterruption = isPlayingNow;
-        if (wasPlayingBeforeInterruption) {
-          _audioHandler.pause();
-        }
+      // Interruption started (e.g., phone call)
+      wasPlayingBeforeInterruption = isPlayingNow;
+      if (wasPlayingBeforeInterruption) {
+        _audioHandler.pause();
       }
     } else {
-      if (event.type == AudioInterruptionType.pause ||
-          event.type == AudioInterruptionType.duck) {
-        if (wasPlayingBeforeInterruption) {
+      // Interruption ended (e.g., call finished) - resume if we were playing
+      if (wasPlayingBeforeInterruption) {
+        // Small delay to let audio session settle before resuming
+        Future.delayed(Duration(milliseconds: 200)).then((_) {
           _audioHandler.play();
-        }
-        wasPlayingBeforeInterruption = false;
+        });
       }
+      wasPlayingBeforeInterruption = false;
     }
   });
 
@@ -2794,6 +2932,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
     return MaterialApp(
       navigatorKey: _appNavigatorKey,
+      navigatorObservers: [_routeObserver],
       title: 'Ulticast Podcast App',
       themeMode: podcastState.isDarkMode ? ThemeMode.dark : ThemeMode.light,
       theme: ThemeData(
@@ -3479,14 +3618,17 @@ class EpisodesPage extends StatefulWidget {
   State<EpisodesPage> createState() => _EpisodesPageState();
 }
 
-class _EpisodesPageState extends State<EpisodesPage> {
+class _EpisodesPageState extends State<EpisodesPage>
+  with WidgetsBindingObserver, RouteAware {
   EpisodeFilter _filter = EpisodeFilter.all;
   EpisodeSort _sort = EpisodeSort.newest;
   bool _isSearchOpen = false;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
   bool _sortLoadedFromMetadata = false;
+  String? _viewPrefsLoadedForFeed;
   bool _initialAutoScrollDone = false;
+  bool _pendingAutoScrollToCurrent = false;
   final ItemScrollController _itemScrollController = ItemScrollController();
   String? _cachedFeedUrl;
   List<dynamic>? _cachedEpisodesSource;
@@ -3498,10 +3640,12 @@ class _EpisodesPageState extends State<EpisodesPage> {
   List<Map<String, dynamic>> _cachedVisibleEpisodes = const [];
   final Set<String> _expandedEpisodeDescriptions = <String>{};
   PodcastAppState? _podcastState;
+  ModalRoute<dynamic>? _subscribedRoute;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _searchController.addListener(_onSearchChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _podcastState?.refreshConnectivityStatus();
@@ -3510,6 +3654,11 @@ class _EpisodesPageState extends State<EpisodesPage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    final route = _subscribedRoute;
+    if (route is ModalRoute<void>) {
+      _routeObserver.unsubscribe(this);
+    }
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     super.dispose();
@@ -3519,6 +3668,33 @@ class _EpisodesPageState extends State<EpisodesPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _podcastState ??= Provider.of<PodcastAppState>(context, listen: false);
+    final route = ModalRoute.of(context);
+    if (!identical(route, _subscribedRoute) && route is ModalRoute<void>) {
+      if (_subscribedRoute is ModalRoute<void>) {
+        _routeObserver.unsubscribe(this);
+      }
+      _routeObserver.subscribe(this, route);
+      _subscribedRoute = route;
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _requestAutoScrollToCurrent();
+    }
+  }
+
+  @override
+  void didPopNext() {
+    _requestAutoScrollToCurrent();
+  }
+
+  void _requestAutoScrollToCurrent() {
+    _pendingAutoScrollToCurrent = true;
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   int _readPositionMs(dynamic value) {
@@ -3587,7 +3763,27 @@ class _EpisodesPageState extends State<EpisodesPage> {
     if (next == _searchQuery) return;
     setState(() {
       _searchQuery = next;
+      _isSearchOpen = next.isNotEmpty;
     });
+
+    final feedUrl = ModalRoute.of(context)?.settings.arguments as String?;
+    final podcastState = _podcastState;
+    if (feedUrl == null || podcastState == null) return;
+    final podcast = podcastState.podcasts[feedUrl];
+    if (podcast == null) return;
+    final episodesSource = (podcast['episodes'] as List<dynamic>?) ?? const [];
+    final isOffline = podcastState.isOffline;
+
+    unawaited(podcastState.setEpisodeSearchForPodcast(feedUrl, next));
+    unawaited(
+      _syncAudioQueueForCurrentPodcastIfActive(
+        feedUrl,
+        podcast,
+        episodesSource,
+        podcastState,
+        isOffline,
+      ),
+    );
   }
 
   List<InlineSpan> _buildHighlightedSpans(String text, TextStyle baseStyle) {
@@ -3682,6 +3878,33 @@ class _EpisodesPageState extends State<EpisodesPage> {
         return 'oldest';
       case EpisodeSort.titleAsc:
         return 'titleAsc';
+    }
+  }
+
+  EpisodeFilter _filterFromStorageValue(String value) {
+    switch (value) {
+      case 'inProgress':
+        return EpisodeFilter.inProgress;
+      case 'played':
+        return EpisodeFilter.played;
+      case 'unplayed':
+        return EpisodeFilter.unplayed;
+      case 'all':
+      default:
+        return EpisodeFilter.all;
+    }
+  }
+
+  String _filterStorageValue(EpisodeFilter filter) {
+    switch (filter) {
+      case EpisodeFilter.all:
+        return 'all';
+      case EpisodeFilter.inProgress:
+        return 'inProgress';
+      case EpisodeFilter.played:
+        return 'played';
+      case EpisodeFilter.unplayed:
+        return 'unplayed';
     }
   }
 
@@ -3971,25 +4194,47 @@ class _EpisodesPageState extends State<EpisodesPage> {
     _cachedVisibleEpisodes = filtered;
   }
 
-  void _scheduleInitialAutoScroll(List<Map<String, dynamic>> visibleEpisodes) {
-    if (_initialAutoScrollDone || visibleEpisodes.isEmpty) {
+  void _scheduleAutoScrollToCurrentEpisode(
+    List<Map<String, dynamic>> visibleEpisodes, {
+    bool force = false,
+  }) {
+    if (!force && _initialAutoScrollDone) {
+      return;
+    }
+    if (visibleEpisodes.isEmpty) {
       _initialAutoScrollDone = true;
+      _pendingAutoScrollToCurrent = false;
       return;
     }
 
     int? targetIndex;
+
+    // First priority: find the last (most recent) in-progress episode
+    // This handles the case where current playing episode is the latest
     for (int i = visibleEpisodes.length - 1; i >= 0; i--) {
       final episode = visibleEpisodes[i];
       final isPlayed = (episode['played'] ?? false) == true;
       final isInProgress = !isPlayed && _readPositionMs(episode['lastPositionMs']) > 0;
-      final isConsumed = isPlayed || isInProgress;
-      if (isConsumed) {
+      if (isInProgress) {
         targetIndex = i;
         break;
       }
     }
 
+    // If no in-progress found, find the last played episode
+    if (targetIndex == null) {
+      for (int i = visibleEpisodes.length - 1; i >= 0; i--) {
+        final episode = visibleEpisodes[i];
+        final isPlayed = (episode['played'] ?? false) == true;
+        if (isPlayed) {
+          targetIndex = i;
+          break;
+        }
+      }
+    }
+
     _initialAutoScrollDone = true;
+    _pendingAutoScrollToCurrent = false;
     if (targetIndex == null || targetIndex <= 0) {
       return;
     }
@@ -3998,6 +4243,103 @@ class _EpisodesPageState extends State<EpisodesPage> {
       if (!mounted || !_itemScrollController.isAttached) return;
       _itemScrollController.jumpTo(index: targetIndex!, alignment: 0.02);
     });
+  }
+
+  List<Map<String, dynamic>> _queueEpisodesForSortState(
+    List<dynamic> episodesSource,
+    PodcastAppState podcastState,
+    bool isOffline,
+  ) {
+    final episodeMaps = <Map<String, dynamic>>[];
+    for (final entry in episodesSource) {
+      if (entry is Map<String, dynamic>) {
+        episodeMaps.add(Map<String, dynamic>.from(entry));
+      } else if (entry is Map) {
+        episodeMaps.add(Map<String, dynamic>.from(entry));
+      }
+    }
+
+    final filtered = episodeMaps.where((episode) {
+      if (isOffline && !podcastState.isEpisodeDownloaded(episode)) {
+        return false;
+      }
+      return _matchesFilter(episode) && _matchesSearch(episode);
+    }).toList();
+
+    if (_sort == EpisodeSort.titleAsc) {
+      filtered.sort(
+        (a, b) => (a['title'] ?? '')
+            .toString()
+            .toLowerCase()
+            .compareTo((b['title'] ?? '').toString().toLowerCase()),
+      );
+      return filtered;
+    }
+
+    final parsedDateCache = <Map<String, dynamic>, DateTime>{};
+    DateTime cachedDate(Map<String, dynamic> episode) {
+      return parsedDateCache.putIfAbsent(
+        episode,
+        () => _parseEpisodeDate(episode['pubDate']) ??
+            DateTime.fromMillisecondsSinceEpoch(0),
+      );
+    }
+
+    filtered.sort((a, b) {
+      final dateA = cachedDate(a);
+      final dateB = cachedDate(b);
+      if (_sort == EpisodeSort.newest) {
+        return dateB.compareTo(dateA);
+      }
+      return dateA.compareTo(dateB);
+    });
+
+    return filtered;
+  }
+
+  Future<void> _syncAudioQueueForCurrentPodcastIfActive(
+    String feedUrl,
+    Map<String, dynamic> podcast,
+    List<dynamic> episodesSource,
+    PodcastAppState podcastState,
+    bool isOffline,
+  ) async {
+    final activeItem = _audioHandler.mediaItem.value;
+    final activeFeedUrl = (activeItem?.extras?['feedUrl'] ?? '').toString();
+    if (activeFeedUrl != feedUrl) return;
+
+    final queueEpisodes = _queueEpisodesForSortState(
+      episodesSource,
+      podcastState,
+      isOffline,
+    );
+    final mediaItems = queueEpisodes
+        .map((episode) => podcastState._mediaItemFromEpisode(episode, podcast))
+        .where((item) => item.id.isNotEmpty)
+        .toList(growable: false);
+
+    await _audioHandler.syncEpisodeQueuePreservingCurrent(mediaItems);
+  }
+
+  Future<void> _persistViewPrefsAndSyncQueue(
+    String feedUrl,
+    Map<String, dynamic> podcast,
+    List<dynamic> episodesSource,
+    PodcastAppState podcastState,
+    bool isOffline,
+  ) async {
+    await podcastState.setEpisodeFilterForPodcast(
+      feedUrl,
+      _filterStorageValue(_filter),
+    );
+    await podcastState.setEpisodeSearchForPodcast(feedUrl, _searchQuery);
+    await _syncAudioQueueForCurrentPodcastIfActive(
+      feedUrl,
+      podcast,
+      episodesSource,
+      podcastState,
+      isOffline,
+    );
   }
 
   List<Map<String, dynamic>> _audioRouteQueueEpisodes(
@@ -4034,6 +4376,21 @@ class _EpisodesPageState extends State<EpisodesPage> {
       _sortLoadedFromMetadata = true;
     }
 
+    if (_viewPrefsLoadedForFeed != feedUrl) {
+      final persistedFilter = podcastState.episodeFilterForPodcast(feedUrl);
+      final persistedSearch = podcastState.episodeSearchForPodcast(feedUrl);
+      _filter = _filterFromStorageValue(persistedFilter);
+      _searchQuery = persistedSearch;
+      _isSearchOpen = persistedSearch.isNotEmpty;
+      if (_searchController.text != persistedSearch) {
+        _searchController.value = TextEditingValue(
+          text: persistedSearch,
+          selection: TextSelection.collapsed(offset: persistedSearch.length),
+        );
+      }
+      _viewPrefsLoadedForFeed = feedUrl;
+    }
+
     final isOffline = podcastState.isOffline;
     final episodesSource = (podcast['episodes'] as List<dynamic>?) ?? const [];
     _refreshVisibleEpisodesIfNeeded(
@@ -4052,7 +4409,10 @@ class _EpisodesPageState extends State<EpisodesPage> {
       }
       return false;
     }).length;
-    _scheduleInitialAutoScroll(visibleEpisodes);
+    _scheduleAutoScrollToCurrentEpisode(
+      visibleEpisodes,
+      force: _pendingAutoScrollToCurrent,
+    );
     final error = podcastState.error(feedUrl) ?? podcast['error'];
 
     return Scaffold(
@@ -4094,7 +4454,7 @@ class _EpisodesPageState extends State<EpisodesPage> {
           IconButton(
             tooltip: _isSearchOpen ? 'Close search' : 'Search episodes',
             icon: Icon(_isSearchOpen ? Icons.close : Icons.search),
-            onPressed: () {
+            onPressed: () async {
               setState(() {
                 if (_isSearchOpen) {
                   _searchController.clear();
@@ -4102,6 +4462,13 @@ class _EpisodesPageState extends State<EpisodesPage> {
                 }
                 _isSearchOpen = !_isSearchOpen;
               });
+              await _persistViewPrefsAndSyncQueue(
+                feedUrl,
+                podcast,
+                episodesSource,
+                podcastState,
+                isOffline,
+              );
             },
           ),
         ],
@@ -4138,25 +4505,61 @@ class _EpisodesPageState extends State<EpisodesPage> {
                       ChoiceChip(
                         label: const Text('All'),
                         selected: _filter == EpisodeFilter.all,
-                        onSelected: (_) => setState(() => _filter = EpisodeFilter.all),
+                        onSelected: (_) async {
+                          setState(() => _filter = EpisodeFilter.all);
+                          await _persistViewPrefsAndSyncQueue(
+                            feedUrl,
+                            podcast,
+                            episodesSource,
+                            podcastState,
+                            isOffline,
+                          );
+                        },
                       ),
                       const SizedBox(width: 8),
                       ChoiceChip(
                         label: const Text('In Progress'),
                         selected: _filter == EpisodeFilter.inProgress,
-                        onSelected: (_) => setState(() => _filter = EpisodeFilter.inProgress),
+                        onSelected: (_) async {
+                          setState(() => _filter = EpisodeFilter.inProgress);
+                          await _persistViewPrefsAndSyncQueue(
+                            feedUrl,
+                            podcast,
+                            episodesSource,
+                            podcastState,
+                            isOffline,
+                          );
+                        },
                       ),
                       const SizedBox(width: 8),
                       ChoiceChip(
                         label: const Text('Played'),
                         selected: _filter == EpisodeFilter.played,
-                        onSelected: (_) => setState(() => _filter = EpisodeFilter.played),
+                        onSelected: (_) async {
+                          setState(() => _filter = EpisodeFilter.played);
+                          await _persistViewPrefsAndSyncQueue(
+                            feedUrl,
+                            podcast,
+                            episodesSource,
+                            podcastState,
+                            isOffline,
+                          );
+                        },
                       ),
                       const SizedBox(width: 8),
                       ChoiceChip(
                         label: const Text('Unplayed'),
                         selected: _filter == EpisodeFilter.unplayed,
-                        onSelected: (_) => setState(() => _filter = EpisodeFilter.unplayed),
+                        onSelected: (_) async {
+                          setState(() => _filter = EpisodeFilter.unplayed);
+                          await _persistViewPrefsAndSyncQueue(
+                            feedUrl,
+                            podcast,
+                            episodesSource,
+                            podcastState,
+                            isOffline,
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -4174,6 +4577,13 @@ class _EpisodesPageState extends State<EpisodesPage> {
                         await podcastState.setEpisodeSortForPodcast(
                           feedUrl,
                           _sortStorageValue(value),
+                        );
+                        await _syncAudioQueueForCurrentPodcastIfActive(
+                          feedUrl,
+                          podcast,
+                          episodesSource,
+                          podcastState,
+                          isOffline,
                         );
                       },
                       items: EpisodeSort.values
