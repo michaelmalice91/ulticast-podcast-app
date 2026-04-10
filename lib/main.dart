@@ -129,6 +129,9 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
       onDeleteDownloadedAudio;
   final Set<String> _prefetchTriggeredFor = <String>{};
   Future<void> Function(String audioUrl, int positionMs, String? feedUrl)? onSaveProgress;
+  Future<void> Function(MediaItem item)? onEpisodeStarted;
+  bool _wasPlayingBeforeInterruption = false;
+  DateTime? _lastPeriodicSaveTime;
   String _shortId(String url) {
     if (url.length <= 72) return url;
     return '${url.substring(0, 36)}...${url.substring(url.length - 24)}';
@@ -197,6 +200,29 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     // Save progress on pause/stop (lock screen, Bluetooth, media controls, manual)
     _player.playingStream.listen((isPlaying) {
       _onPlayingStateChanged(isPlaying);
+    });
+    // Handle interruptions and headphones from within the audio service so it
+    // works reliably even when the app is backgrounded or the phone is locked.
+    AudioSession.instance.then((session) {
+      session.interruptionEventStream.listen((event) {
+        if (event.begin) {
+          _wasPlayingBeforeInterruption = _player.playing;
+          if (_wasPlayingBeforeInterruption) {
+            _player.pause();
+          }
+        } else {
+          if (_wasPlayingBeforeInterruption) {
+            // Delay to allow audio session to settle before resuming
+            Future.delayed(const Duration(milliseconds: 500), () => _player.play());
+          }
+          _wasPlayingBeforeInterruption = false;
+        }
+      });
+      // Pause when headphones are unplugged
+      session.becomingNoisyEventStream.listen((_) {
+        _wasPlayingBeforeInterruption = false;
+        _player.pause();
+      });
     });
   }
 
@@ -284,6 +310,18 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   }
 
   void _maybePrefetchNext(Duration position) {
+    // Periodic progress save every 30 seconds while playing.
+    // This ensures progress is saved even if pause events are missed
+    // (e.g., phone call while backgrounded, OS-level audio interruptions).
+    if (_player.playing) {
+      final now = DateTime.now();
+      if (_lastPeriodicSaveTime == null ||
+          now.difference(_lastPeriodicSaveTime!) >= const Duration(seconds: 30)) {
+        _lastPeriodicSaveTime = now;
+        _saveCurrentProgress(); // fire-and-forget
+      }
+    }
+
     final current = mediaItem.value;
     if (current == null) return;
     if (_prefetchTriggeredFor.contains(current.id)) return;
@@ -548,6 +586,11 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
       );
       return;
     }
+
+    // Notify that a new episode has started so storage can update the
+    // 'last played' record. This is critical for correct restore after
+    // background auto-advance when the app is killed.
+    onEpisodeStarted?.call(item);
 
     if (!hasLocalAudio && feedUrl.isNotEmpty) {
       _startBackgroundDownloadForCurrent(item, feedUrl);
@@ -2833,6 +2876,11 @@ Future<void> main() async {
       feedUrl: feedUrl,
     );
   };
+  _audioHandler.onEpisodeStarted = (item) {
+    // Keep 'last played' record current so app restart restores the right
+    // episode even when auto-advance happens while the app is backgrounded.
+    return podcastState.rememberLastPlayedEpisode(item, 0);
+  };
 
   final startupLog =
       '[LocalCache][Main] Logging active. Play an episode and search logs for LocalCache';
@@ -2845,38 +2893,8 @@ Future<void> main() async {
 
   runApp(ChangeNotifierProvider(create: (_) => podcastState, child: MyApp()));
   unawaited(podcastState.syncFeedsOnStartup());
-
-  var wasPlayingBeforeInterruption = false;
-  var isPlayingNow = false;
-  _audioHandler.playbackState.listen((state) {
-    isPlayingNow = state.playing;
-  });
-
-  // Optionally: listen for interruptions globally
-  session.interruptionEventStream.listen((event) {
-    if (event.begin) {
-      // Interruption started (e.g., phone call)
-      wasPlayingBeforeInterruption = isPlayingNow;
-      if (wasPlayingBeforeInterruption) {
-        _audioHandler.pause();
-      }
-    } else {
-      // Interruption ended (e.g., call finished) - resume if we were playing
-      if (wasPlayingBeforeInterruption) {
-        // Small delay to let audio session settle before resuming
-        Future.delayed(Duration(milliseconds: 200)).then((_) {
-          _audioHandler.play();
-        });
-      }
-      wasPlayingBeforeInterruption = false;
-    }
-  });
-
-  // Handle unplugged headphones
-  session.becomingNoisyEventStream.listen((_) {
-    wasPlayingBeforeInterruption = false;
-    _audioHandler.pause();
-  });
+  // Interruption handling (phone calls, headphones) is managed inside
+  // AudioPlayerHandler so it works in background and when phone is locked.
 }
 
 class MyApp extends StatefulWidget {
@@ -5006,6 +5024,7 @@ class _AudioPageState extends State<AudioPage> {
   int _lastPersistedMs = -1;
   StreamSubscription<Duration>? _positionSub;
   StreamSubscription<PlaybackState>? _playbackSub;
+  StreamSubscription<MediaItem?>? _mediaItemSub;
 
   int _readPositionMs(dynamic value) {
     if (value is int) return value;
@@ -5339,7 +5358,11 @@ class _AudioPageState extends State<AudioPage> {
     }
 
     _playbackSub = _audioHandler.playbackState.listen((state) async {
-      if (!state.playing) {
+      // Only save when the player is in a stable paused/ready state.
+      // Skipping loading/buffering/idle prevents saving position 0 when
+      // the player transitions between episodes during auto-advance.
+      if (!state.playing &&
+          state.processingState == AudioProcessingState.ready) {
         await _persistCurrentPosition(state.updatePosition, force: true);
       }
     });
@@ -5347,12 +5370,55 @@ class _AudioPageState extends State<AudioPage> {
     _positionSub = AudioService.position.listen((position) {
       _persistCurrentPosition(position);
     });
+
+    // Track auto-advance: when the handler moves to a new episode, update
+    // currentEpisode so the UI (image, title) reflects the new track.
+    _mediaItemSub = _audioHandler.mediaItem.listen((item) {
+      if (item == null || !mounted) return;
+      final currentUrl = currentEpisode?['audioUrl']?.toString() ?? '';
+      if (item.id.isNotEmpty && item.id != currentUrl) {
+        _updateCurrentEpisodeFromMediaItem(item);
+      }
+    });
+  }
+
+  void _updateCurrentEpisodeFromMediaItem(MediaItem item) {
+    if (!mounted) return;
+    // Find the matching episode in the current podcast episode list
+    final episodes = currentPodcast?['episodes'] as List<dynamic>?;
+    if (episodes != null) {
+      final idx = episodes.indexWhere((ep) {
+        if (ep is! Map) return false;
+        return (Map<String, dynamic>.from(ep)['audioUrl']?.toString() ?? '') == item.id;
+      });
+      if (idx >= 0) {
+        setState(() {
+          currentIndex = idx;
+          currentEpisode = Map<String, dynamic>.from(episodes[idx] as Map);
+        });
+        return;
+      }
+    }
+    // Fallback: build a minimal episode map from the MediaItem fields
+    setState(() {
+      currentEpisode = {
+        'audioUrl': item.id,
+        'title': item.title,
+        'imageUrl': item.artUri?.toString(),
+        'podcastTitle': item.album,
+        'author': item.artist,
+        'feedUrl': item.extras?['feedUrl'] ?? '',
+        'lastPositionMs': item.extras?['lastPositionMs'] ?? 0,
+        'played': item.extras?['played'] ?? false,
+      };
+    });
   }
 
   @override
   void dispose() {
     _positionSub?.cancel();
     _playbackSub?.cancel();
+    _mediaItemSub?.cancel();
     super.dispose();
   }
 
@@ -5363,8 +5429,8 @@ class _AudioPageState extends State<AudioPage> {
     final episode = args != null ? args['episode'] as Map<String, dynamic>? : null;
     final isOffline = context.select<PodcastAppState, bool>((s) => s.isOffline);
 
-    final localImagePath = episode?['localImagePath'] as String?;
-    final networkUrl = episode?['imageUrl'] as String?;
+    final localImagePath = currentEpisode?['localImagePath'] as String?;
+    final networkUrl = currentEpisode?['imageUrl'] as String?;
 
     return Scaffold(
       appBar: AppBar(title: const Text('')),
