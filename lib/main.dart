@@ -115,7 +115,7 @@ class MediaState {
 class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   static const Duration _headsetSeekForward = Duration(seconds: 30);
   static const Duration _headsetSeekBackward = Duration(seconds: 10);
-  final _player = AudioPlayer();
+  final _player = AudioPlayer(handleInterruptions: false);
   List<dynamic> _episodes = [];
   int _currentIndex = -1;
   final Map<String, int> _savedPositionsMs = {};
@@ -132,6 +132,21 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   Future<void> Function(MediaItem item)? onEpisodeStarted;
   bool _wasPlayingBeforeInterruption = false;
   DateTime? _lastPeriodicSaveTime;
+
+  /// Called when the app returns to foreground. If we were playing before an
+  /// interruption whose end-event was never delivered, resume now.
+  void tryResumeAfterInterruption() {
+    if (!_wasPlayingBeforeInterruption) return;
+    _wasPlayingBeforeInterruption = false;
+    AudioSession.instance.then((session) {
+      session.setActive(true).then((_) {
+        if (!_player.playing && mediaItem.value != null) {
+          _player.play();
+        }
+      });
+    });
+  }
+
   String _shortId(String url) {
     if (url.length <= 72) return url;
     return '${url.substring(0, 36)}...${url.substring(url.length - 24)}';
@@ -203,22 +218,37 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     });
     // Handle interruptions and headphones from within the audio service so it
     // works reliably even when the app is backgrounded or the phone is locked.
+    // just_audio's built-in handling is disabled (handleInterruptions: false)
+    // to prevent double-handling race conditions where just_audio pauses the
+    // player before we can read the playing state.
     AudioSession.instance.then((session) {
       session.interruptionEventStream.listen((event) {
         if (event.begin) {
+          // Read playing state BEFORE any pause — we are the sole handler.
           _wasPlayingBeforeInterruption = _player.playing;
           if (_wasPlayingBeforeInterruption) {
             _player.pause();
           }
         } else {
+          // Resume for all interruption types (pause, duck, unknown).
+          // For a podcast app we always want to resume after any interruption.
           if (_wasPlayingBeforeInterruption) {
-            // Delay to allow audio session to settle before resuming
-            Future.delayed(const Duration(milliseconds: 500), () => _player.play());
+            // Re-activate the audio session to re-request audio focus,
+            // then resume playback after a short settle delay.
+            // Keep _wasPlayingBeforeInterruption true until the delay fires
+            // so a new interruption begin during the delay cancels the resume.
+            session.setActive(true).then((_) {
+              Future.delayed(const Duration(milliseconds: 500), () {
+                if (_wasPlayingBeforeInterruption && !_player.playing) {
+                  _player.play();
+                }
+                _wasPlayingBeforeInterruption = false;
+              });
+            });
           }
-          _wasPlayingBeforeInterruption = false;
         }
       });
-      // Pause when headphones are unplugged
+      // Pause when headphones are unplugged (e.g. Bluetooth disconnects)
       session.becomingNoisyEventStream.listen((_) {
         _wasPlayingBeforeInterruption = false;
         _player.pause();
@@ -235,13 +265,17 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     final current = mediaItem.value;
     if (current == null || onSaveProgress == null) return;
 
-    final position = _player.position;
-    final feedUrl = current.extras?['feedUrl']?.toString() ?? '';
-    await onSaveProgress!(
-      current.id,
-      position.inMilliseconds,
-      feedUrl.isNotEmpty ? feedUrl : null,
-    );
+    try {
+      final position = _player.position;
+      final feedUrl = current.extras?['feedUrl']?.toString() ?? '';
+      await onSaveProgress!(
+        current.id,
+        position.inMilliseconds,
+        feedUrl.isNotEmpty ? feedUrl : null,
+      );
+    } catch (e) {
+      _cacheLog('Save progress failed: $e');
+    }
   }
 
   bool _isAutoCached(MediaItem item) {
@@ -273,6 +307,7 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
         entry['localAudioPath'] = localPath;
         entry['autoCachedAudio'] = autoCachedAudio;
       }
+      break;
     }
   }
 
@@ -366,6 +401,8 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
       _cacheLog(
         'Prefetch complete: ${_shortId(nextItem.id)} saved at $localPath',
       );
+    }).catchError((e) {
+      _cacheLog('Prefetch failed for ${_shortId(nextItem.id)}: $e');
     });
   }
 
@@ -416,26 +453,32 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
         'Switching active playback to local source: ${_shortId(item.id)} at ${currentPosition.inSeconds}s',
       );
 
-      await _player.setAudioSource(
-        AudioSource.uri(Uri.file(localPath)),
-        initialPosition: currentPosition,
-      );
-      mediaItem.add(
-        active.copyWith(
-          extras: {
-            ...?active.extras,
-            'localAudioPath': localPath,
-            'autoCachedAudio': true,
-          },
-        ),
-      );
-      if (wasPlaying) {
-        await _player.play();
-      }
+      try {
+        await _player.setAudioSource(
+          AudioSource.uri(Uri.file(localPath)),
+          initialPosition: currentPosition,
+        );
+        mediaItem.add(
+          active.copyWith(
+            extras: {
+              ...?active.extras,
+              'localAudioPath': localPath,
+              'autoCachedAudio': true,
+            },
+          ),
+        );
+        if (wasPlaying) {
+          await _player.play();
+        }
 
-      _cacheLog(
-        'Switched to local playback: ${_shortId(item.id)} (resumed=${wasPlaying ? 'playing' : 'paused'})',
-      );
+        _cacheLog(
+          'Switched to local playback: ${_shortId(item.id)} (resumed=${wasPlaying ? 'playing' : 'paused'})',
+        );
+      } catch (e) {
+        _cacheLog('Failed to switch to local source: $e');
+      }
+    }).catchError((e) {
+      _cacheLog('Background download failed: $e');
     });
   }
 
@@ -480,7 +523,11 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
         _markQueueEpisodePlayedAt(_currentIndex);
         if (onEpisodeCompleted != null) {
           final feedUrl = completedItem.extras?['feedUrl']?.toString();
-          await onEpisodeCompleted!(completedItem.id, feedUrl);
+          try {
+            await onEpisodeCompleted!(completedItem.id, feedUrl);
+          } catch (e) {
+            _cacheLog('onEpisodeCompleted callback error: $e');
+          }
         }
       }
 
@@ -527,6 +574,8 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
         nextItem,
         initialPosition: resumeMs > 0 ? Duration(milliseconds: resumeMs) : null,
       );
+    } catch (e) {
+      _cacheLog('Episode completion handler error: $e');
     } finally {
       _isHandlingCompletion = false;
     }
@@ -580,6 +629,7 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
       _pendingRestorePosition = null;
       play();
     } catch (e) {
+      _pendingRestorePosition = null;
       _cacheLog('Playback failed for ${_shortId(item.id)}: $e');
       onPlaybackError?.call(
         "Can't play this episode right now. Check your internet connection.",
@@ -590,7 +640,11 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     // Notify that a new episode has started so storage can update the
     // 'last played' record. This is critical for correct restore after
     // background auto-advance when the app is killed.
-    onEpisodeStarted?.call(item);
+    try {
+      onEpisodeStarted?.call(item);
+    } catch (e) {
+      _cacheLog('onEpisodeStarted callback error: $e');
+    }
 
     if (!hasLocalAudio && feedUrl.isNotEmpty) {
       _startBackgroundDownloadForCurrent(item, feedUrl);
@@ -726,6 +780,8 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
         );
         return;
       }
+    } else if (_player.audioSource == null) {
+      return;
     }
     await _player.play();
   }
@@ -1452,6 +1508,24 @@ class PodcastAppState extends ChangeNotifier {
           ? Duration(milliseconds: positionMs)
           : Duration.zero,
     );
+
+    // Populate the full sorted queue so auto-advance works after app restart.
+    if (foundPodcast != null) {
+      final feedUrl = (foundPodcast['feedUrl'] ?? '').toString();
+      final allEpisodes = (foundPodcast['episodes'] as List<dynamic>? ?? const [])
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+      if (allEpisodes.length > 1) {
+        final sortPref = episodeSortForPodcast(feedUrl);
+        _sortEpisodesByPref(allEpisodes, sortPref);
+        final mediaItems = allEpisodes
+            .map((ep) => _mediaItemFromEpisode(ep, foundPodcast!))
+            .where((item) => item.id.isNotEmpty)
+            .toList(growable: false);
+        await handler.syncEpisodeQueuePreservingCurrent(mediaItems);
+      }
+    }
   }
 
   bool isAudioDownloading(String audioUrl) => _downloadingAudio[audioUrl] ?? false;
@@ -1695,7 +1769,9 @@ class PodcastAppState extends ChangeNotifier {
           episode['lastPositionMs'] = 0;
           _audioHandler.setSavedPosition(audioUrl, 0);
         } else {
-          episode['played'] = false;
+          if (episode['played'] != true) {
+            episode['played'] = false;
+          }
           episode['lastPositionMs'] = safePositionMs;
           _audioHandler.setSavedPosition(audioUrl, safePositionMs);
         }
@@ -1716,7 +1792,10 @@ class PodcastAppState extends ChangeNotifier {
     final targetPodcastRef =
         (feedUrl != null && feedUrl.isNotEmpty) ? _podcasts[feedUrl] : null;
     for (final podcast in _podcasts.values) {
-      if (identical(podcast, targetPodcastRef)) continue;
+      if (targetPodcastRef != null &&
+          (podcast['feedUrl'] ?? '') == (targetPodcastRef['feedUrl'] ?? '')) {
+        continue;
+      }
       anyUpdated = tryUpdateInPodcast(podcast) || anyUpdated;
     }
 
@@ -2012,6 +2091,15 @@ class PodcastAppState extends ChangeNotifier {
   }
 
   void _sortEpisodesNewestFirst(List<Map<String, dynamic>> episodes) {
+    _sortEpisodesByPref(episodes, 'newest');
+  }
+
+  void _sortEpisodesByPref(List<Map<String, dynamic>> episodes, String sortPref) {
+    if (sortPref == 'titleAsc') {
+      episodes.sort((a, b) => (a['title'] ?? '').toString().toLowerCase()
+          .compareTo((b['title'] ?? '').toString().toLowerCase()));
+      return;
+    }
     final parsedDateCache = <Map<String, dynamic>, DateTime>{};
     DateTime cachedDate(Map<String, dynamic> episode) {
       return parsedDateCache.putIfAbsent(
@@ -2020,8 +2108,11 @@ class PodcastAppState extends ChangeNotifier {
             DateTime.fromMillisecondsSinceEpoch(0),
       );
     }
-
-    episodes.sort((a, b) => cachedDate(b).compareTo(cachedDate(a)));
+    if (sortPref == 'oldest') {
+      episodes.sort((a, b) => cachedDate(a).compareTo(cachedDate(b)));
+    } else {
+      episodes.sort((a, b) => cachedDate(b).compareTo(cachedDate(a)));
+    }
   }
 
   String _episodeIdentityKey(Map<String, dynamic> episode) {
@@ -2606,12 +2697,19 @@ class PodcastAppState extends ChangeNotifier {
     }
 
     try {
-      final response = await http.get(Uri.parse(feedUrl));
+      final response = await http.get(Uri.parse(feedUrl))
+          .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final converter = Xml2Map(response.body);
         final data = await converter.transform();
-        final channel = data!['rss']!['channel']!;
+        final channel = data?['rss']?['channel'];
+        if (channel == null) {
+          _errors[feedUrl] = 'Invalid RSS feed structure';
+          _loading[feedUrl] = false;
+          notifyListeners();
+          return;
+        }
         final existingEpisodeSort = episodeSortForPodcast(feedUrl);
         final existingEpisodes =
             (_podcasts[feedUrl]?['episodes'] as List<dynamic>? ?? const []);
@@ -2638,12 +2736,16 @@ class PodcastAppState extends ChangeNotifier {
         }
         var podcastImage =
             channel['image']?['url'] ?? channel['itunes:image']?['@href'];
-        var podcastImageFilename = fileNameFromUrl(podcastImage);
+        var podcastImageFilename =
+            podcastImage != null ? fileNameFromUrl(podcastImage.toString()) : '';
         var podcastImagePath = await downloadAndSaveImage(
-          podcastImage,
+          podcastImage?.toString(),
           podcastImageFilename,
         );
-        final List<dynamic> rawEpisodes = channel['item'] as List<dynamic>;
+        final rawItem = channel['item'];
+        final List<dynamic> rawEpisodes = rawItem is List
+            ? rawItem
+            : (rawItem != null ? <dynamic>[rawItem] : <dynamic>[]);
         final fetchedEpisodes = rawEpisodes.map((item) {
           var pubDate = parseString(item['pubDate']);
           if (parseString(channel['title']).trim() ==
@@ -2809,6 +2911,8 @@ class PodcastAppState extends ChangeNotifier {
     _loading.remove(feedUrl);
     _errors.remove(feedUrl);
     _episodeSortPrefs.remove(feedUrl);
+    _episodeFilterPrefs.remove(feedUrl);
+    _episodeSearchPrefs.remove(feedUrl);
     saveToStorage();
     notifyListeners();
   }
@@ -2823,9 +2927,23 @@ Future<void> main() async {
   // Required when using async in main()
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Configure the audio session before starting playback
+  // Configure the audio session for media/podcast playback.
+  // Using 'media' usage (not 'voiceCommunication') so the system treats this
+  // as media playback — correct Bluetooth routing (A2DP, not SCO) and proper
+  // audio focus transitions with phone calls and other apps.
   final session = await AudioSession.instance;
-  await session.configure(const AudioSessionConfiguration.speech());
+  await session.configure(const AudioSessionConfiguration(
+    avAudioSessionCategory: AVAudioSessionCategory.playback,
+    avAudioSessionMode: AVAudioSessionMode.spokenAudio,
+    avAudioSessionRouteSharingPolicy:
+        AVAudioSessionRouteSharingPolicy.defaultPolicy,
+    avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
+    androidAudioAttributes: AndroidAudioAttributes(
+      contentType: AndroidAudioContentType.speech,
+      usage: AndroidAudioUsage.media,
+    ),
+    androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
+  ));
   // Initialize audio service
   _audioHandler = await AudioService.init(
     builder: () => AudioPlayerHandler(),
@@ -2931,6 +3049,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       _podcastState?.refreshConnectivityStatus();
       unawaited(_podcastState?.syncFeedsOnStartup());
+      // Fallback: if we were playing before an interruption and the
+      // interruption-end event was never delivered (some OEMs don't send
+      // AUDIOFOCUS_GAIN after permanent focus loss), try to resume now
+      // that the user has returned to the app.
+      _audioHandler.tryResumeAfterInterruption();
       return;
     }
 
@@ -5033,6 +5156,40 @@ class _AudioPageState extends State<AudioPage> {
     return 0;
   }
 
+  DateTime? _parseEpisodeDate(dynamic raw) {
+    final value = (raw ?? '').toString().trim();
+    if (value.isEmpty) return null;
+    final direct = DateTime.tryParse(value);
+    if (direct != null) return direct;
+    final formats = [
+      DateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'", 'en_US'),
+      DateFormat("EEE, dd MMM yyyy HH:mm:ss Z", 'en_US'),
+      DateFormat('yyyy-MM-dd HH:mm:ss', 'en_US'),
+    ];
+    for (final format in formats) {
+      try { return format.parse(value, true).toLocal(); } catch (_) {}
+    }
+    return null;
+  }
+
+  void _sortEpisodesList(List<Map<String, dynamic>> episodes, String sortPref) {
+    if (sortPref == 'titleAsc') {
+      episodes.sort((a, b) => (a['title'] ?? '').toString().toLowerCase()
+          .compareTo((b['title'] ?? '').toString().toLowerCase()));
+      return;
+    }
+    final cache = <Map<String, dynamic>, DateTime>{};
+    DateTime cachedDate(Map<String, dynamic> ep) {
+      return cache.putIfAbsent(ep,
+          () => _parseEpisodeDate(ep['pubDate']) ?? DateTime.fromMillisecondsSinceEpoch(0));
+    }
+    if (sortPref == 'oldest') {
+      episodes.sort((a, b) => cachedDate(a).compareTo(cachedDate(b)));
+    } else {
+      episodes.sort((a, b) => cachedDate(b).compareTo(cachedDate(a)));
+    }
+  }
+
   String _selectedAudioUrl() {
     // Only return audio URL if route is initialized
     if (!_routeInitialized) return '';
@@ -5316,6 +5473,24 @@ class _AudioPageState extends State<AudioPage> {
           ...currentPodcast!,
           'episodes': queueEpisodes,
         };
+      } else if (currentPodcast != null) {
+        // No explicit queueEpisodes provided (e.g. opened from media overlay).
+        // Sort the podcast episodes according to the stored sort preference
+        // so auto-advance goes in the correct direction.
+        final feedUrl = (currentPodcast!['feedUrl'] ?? '').toString();
+        final podcastState = _podcastState;
+        if (feedUrl.isNotEmpty && podcastState != null) {
+          final sortPref = podcastState.episodeSortForPodcast(feedUrl);
+          final rawEpisodes = (currentPodcast!['episodes'] as List<dynamic>? ?? const [])
+              .whereType<Map>()
+              .map((ep) => Map<String, dynamic>.from(ep))
+              .toList();
+          _sortEpisodesList(rawEpisodes, sortPref);
+          currentPodcast = {
+            ...currentPodcast!,
+            'episodes': rawEpisodes,
+          };
+        }
       }
 
       if (currentPodcast != null && currentEpisode != null) {
