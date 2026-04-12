@@ -131,12 +131,15 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   Future<void> Function(String audioUrl, int positionMs, String? feedUrl)? onSaveProgress;
   Future<void> Function(MediaItem item)? onEpisodeStarted;
   bool _wasPlayingBeforeInterruption = false;
+  Timer? _pendingResumeTimer;
   DateTime? _lastPeriodicSaveTime;
 
   /// Called when the app returns to foreground. If we were playing before an
   /// interruption whose end-event was never delivered, resume now.
   void tryResumeAfterInterruption() {
     if (!_wasPlayingBeforeInterruption) return;
+    _pendingResumeTimer?.cancel();
+    _pendingResumeTimer = null;
     _wasPlayingBeforeInterruption = false;
     AudioSession.instance.then((session) {
       session.setActive(true).then((_) {
@@ -224,21 +227,33 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     AudioSession.instance.then((session) {
       session.interruptionEventStream.listen((event) {
         if (event.begin) {
-          // Read playing state BEFORE any pause — we are the sole handler.
-          _wasPlayingBeforeInterruption = _player.playing;
-          if (_wasPlayingBeforeInterruption) {
+          // Cancel any pending resume from a previous interruption end so
+          // it doesn't fire during this new interruption.
+          _pendingResumeTimer?.cancel();
+          _pendingResumeTimer = null;
+          // Only update the flag if not already true. If we already intend
+          // to resume (flag is true from a prior interruption begin while
+          // we were playing), preserve it — the player is currently paused
+          // by us, so _player.playing would read false and incorrectly
+          // clear our intent. This handles rapid back-to-back interruptions
+          // like Google Maps navigation alerts.
+          if (!_wasPlayingBeforeInterruption) {
+            _wasPlayingBeforeInterruption = _player.playing;
+          }
+          if (_wasPlayingBeforeInterruption && _player.playing) {
             _player.pause();
           }
         } else {
           // Resume for all interruption types (pause, duck, unknown).
           // For a podcast app we always want to resume after any interruption.
           if (_wasPlayingBeforeInterruption) {
+            // Cancel any prior pending resume timer to avoid duplicates.
+            _pendingResumeTimer?.cancel();
             // Re-activate the audio session to re-request audio focus,
             // then resume playback after a short settle delay.
-            // Keep _wasPlayingBeforeInterruption true until the delay fires
-            // so a new interruption begin during the delay cancels the resume.
             session.setActive(true).then((_) {
-              Future.delayed(const Duration(milliseconds: 500), () {
+              _pendingResumeTimer = Timer(const Duration(milliseconds: 500), () {
+                _pendingResumeTimer = null;
                 if (_wasPlayingBeforeInterruption && !_player.playing) {
                   _player.play();
                 }
