@@ -16,7 +16,7 @@ A Flutter-based podcast player for Android with persistent playback, smart episo
 
 ### TODO
 
-- fix logo
+- release on google play store and apple app store
 
 ## Building & Installation
 
