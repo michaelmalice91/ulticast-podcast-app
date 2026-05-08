@@ -3777,7 +3777,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     return MaterialApp(
       navigatorKey: _appNavigatorKey,
       navigatorObservers: [_routeObserver, _overlayRouteObserver],
-      title: 'Ulticast Podcast App',
+      title: 'Ulticast Podcast',
       themeMode: podcastState.isDarkMode ? ThemeMode.dark : ThemeMode.light,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),

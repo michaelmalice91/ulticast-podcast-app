@@ -1,4 +1,4 @@
-package com.example.ulticast_podcast_app
+package com.michaelmalice.ulticastpodcast
 
 import io.flutter.embedding.android.FlutterActivity
 

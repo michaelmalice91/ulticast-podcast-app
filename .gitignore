@@ -45,3 +45,5 @@ app.*.map.json
 /android/app/release
 
 llama.cpp_commands.txt
+
+release_checklist.txt
