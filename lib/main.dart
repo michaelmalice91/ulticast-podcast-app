@@ -383,10 +383,48 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     });
   }
 
+  /// True if the device's audio mode is currently in a phone call, voice
+  /// communication (VoIP), or ringing. While in any of these modes the
+  /// system audio focus belongs to the call and we must not resume podcast
+  /// playback in the background — even if isMusicActive() returns false.
+  Future<bool> _isPhoneInCall() async {
+    final manager = _androidAudioManager;
+    if (manager == null) return false;
+    try {
+      final mode = await manager.getMode();
+      return mode == AndroidAudioHardwareMode.inCall ||
+          mode == AndroidAudioHardwareMode.inCommunication ||
+          mode == AndroidAudioHardwareMode.ringtone;
+    } catch (error) {
+      _cacheLog('getMode() failed: $error');
+      return false;
+    }
+  }
+
   /// Tries to resume playback after an interruption if we were previously
   /// playing. Includes a short delayed retry for focus handoff races.
   Future<void> _attemptInterruptionResume(String reason) async {
     if (!_resumeAfterInterruption) return;
+
+    // Hard gate: never resume podcast playback while the device is in a
+    // phone call / VoIP / ringing. AndroidAudioManager.isMusicActive()
+    // returns false during phone calls (voice is not music), so without
+    // this check the watchdog would happily call _player.play() during
+    // the call — which is exactly the regression we're guarding against.
+    if (await _isPhoneInCall()) {
+      final now = DateTime.now();
+      final startedAt = _interruptionResumeStartedAt ?? now;
+      if (now.difference(startedAt) > _interruptionResumeMaxWait) {
+        _cacheLog(
+          'Interruption resume max wait reached during phone call; clearing pending resume',
+        );
+        _clearPendingInterruptionResume();
+        return;
+      }
+      _interruptionResumeDeadline = now.add(_interruptionResumeRetryWindow);
+      _cacheLog('Interruption resume deferred ($reason): phone call active');
+      return;
+    }
 
     if (reason == 'watchdog') {
       try {
@@ -428,6 +466,34 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
         _player.processingState == ProcessingState.completed) {
       _clearPendingInterruptionResume();
       return;
+    }
+
+    // Explicit audio-focus acknowledgment before resuming. This matches what
+    // YouTube Music / Spotify do: ask the OS for focus and only call play()
+    // if focus is actually granted. Without this, _player.play() succeeds
+    // locally even when another app (Maps navigation, ongoing call) is
+    // holding focus, leading to muted/ducked playback in the background.
+    try {
+      final session = await AudioSession.instance;
+      final granted = await session.setActive(true);
+      if (!granted) {
+        final now = DateTime.now();
+        final startedAt = _interruptionResumeStartedAt ?? now;
+        if (now.difference(startedAt) > _interruptionResumeMaxWait) {
+          _cacheLog(
+            'Interruption resume max wait reached (focus denied); clearing pending resume',
+          );
+          _clearPendingInterruptionResume();
+          return;
+        }
+        _interruptionResumeDeadline = now.add(_interruptionResumeRetryWindow);
+        _cacheLog('Interruption resume deferred ($reason): focus denied');
+        return;
+      }
+    } catch (error) {
+      _cacheLog('setActive(true) failed ($reason): $error');
+      // Fall through and try to play anyway; just_audio's own focus
+      // handling may still succeed on platforms where setActive throws.
     }
 
     final token = _interruptionResumeToken;
@@ -794,6 +860,89 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     queue.add(_episodes.map(_toMediaItem).whereType<MediaItem>().toList());
   }
 
+  /// Re-sorts [_episodes] in-place to match the user's persisted sort
+  /// preference (carried on each MediaItem's extras as `episodeSortPref`
+  /// and `pubDateMs`). Updates [_currentIndex] to keep pointing at
+  /// [anchorItem] after the resort, and re-broadcasts the queue stream so
+  /// the OS notification reflects the corrected order. No-op if extras
+  /// don't carry the sort hints (e.g. legacy items from older builds).
+  void _realignQueueToSortPref(MediaItem? anchorItem) {
+    if (_episodes.length < 2) return;
+    final hintItem = anchorItem ?? mediaItem.value;
+    final sortPref = hintItem?.extras?['episodeSortPref']?.toString();
+    if (sortPref == null || sortPref.isEmpty) return;
+
+    int? pubDateOf(dynamic entry) {
+      final media = _toMediaItem(entry);
+      final raw = media?.extras?['pubDateMs'];
+      if (raw is int) return raw;
+      if (raw is String) return int.tryParse(raw);
+      if (raw is num) return raw.toInt();
+      return null;
+    }
+
+    String titleOf(dynamic entry) {
+      final media = _toMediaItem(entry);
+      final raw = media?.extras?['title'] ?? media?.title;
+      return (raw ?? '').toString().toLowerCase();
+    }
+
+    // If extras don't carry pubDateMs (legacy items), bail out — we can't
+    // safely reorder without dates.
+    if (sortPref != 'titleAsc') {
+      var anyHasDate = false;
+      for (final entry in _episodes) {
+        final ms = pubDateOf(entry);
+        if (ms != null && ms > 0) {
+          anyHasDate = true;
+          break;
+        }
+      }
+      if (!anyHasDate) return;
+    }
+
+    final anchorId = hintItem?.id ?? '';
+    final reordered = List<dynamic>.from(_episodes);
+    if (sortPref == 'titleAsc') {
+      reordered.sort((a, b) => titleOf(a).compareTo(titleOf(b)));
+    } else if (sortPref == 'oldest') {
+      reordered.sort(
+        (a, b) => (pubDateOf(a) ?? 0).compareTo(pubDateOf(b) ?? 0),
+      );
+    } else {
+      reordered.sort(
+        (a, b) => (pubDateOf(b) ?? 0).compareTo(pubDateOf(a) ?? 0),
+      );
+    }
+
+    // Detect whether order actually changed before mutating state /
+    // emitting on the queue stream.
+    var changed = false;
+    for (int i = 0; i < reordered.length; i++) {
+      if (!identical(reordered[i], _episodes[i])) {
+        changed = true;
+        break;
+      }
+    }
+    if (!changed) return;
+
+    _episodes = reordered;
+    if (anchorId.isNotEmpty) {
+      final newIndex = _episodes.indexWhere((ep) {
+        final media = _toMediaItem(ep);
+        return media?.id == anchorId;
+      });
+      if (newIndex >= 0) {
+        _currentIndex = newIndex;
+      }
+    }
+
+    _cacheLog(
+      'Queue realigned to sortPref=$sortPref idx=$_currentIndex/${_episodes.length}',
+    );
+    queue.add(_episodes.map(_toMediaItem).whereType<MediaItem>().toList());
+  }
+
   /// Fired when the player reaches [ProcessingState.completed]. Marks the
   /// finished episode as played, notifies the app, then auto-advances to the
   /// next not-yet-played episode in the queue (skipping played ones). Stops
@@ -804,6 +953,36 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
 
     try {
       final completedItem = mediaItem.value;
+      final completedTitle = completedItem?.title ?? '<none>';
+      final queueTitles = _episodes
+          .map((e) => _toMediaItem(e)?.title ?? '<bad>')
+          .toList(growable: false);
+      final inCall = await _isPhoneInCall();
+      _cacheLog(
+        'EpisodeCompleted: idx=$_currentIndex/${_episodes.length} '
+        'completed="$completedTitle" wantsPlay=$_userWantsPlayback '
+        'resumeArmed=$_resumeAfterInterruption '
+        'inCall=$inCall '
+        'queue=$queueTitles',
+      );
+
+      // If completion fires while the device is in a phone call (e.g. the
+      // episode finished naturally in the background during a long call),
+      // do not auto-advance to the next episode — the user can't hear it
+      // and the system audio focus belongs to the call. Pause instead.
+      // Auto-advance can resume on the next user-initiated play.
+      if (inCall) {
+        _cacheLog(
+          'EpisodeCompleted suppressed: phone call active. Pausing instead of auto-advancing.',
+        );
+        try {
+          await _player.pause();
+        } catch (e) {
+          _cacheLog('In-call completion pause error: $e');
+        }
+        return;
+      }
+
       if (completedItem != null) {
         _savedPositionsMs[completedItem.id] = 0;
         _markQueueEpisodePlayedAt(_currentIndex);
@@ -816,6 +995,14 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
           }
         }
       }
+
+      // Defensive: realign queue order to the user's persisted sort
+      // preference before picking the next episode. This prevents
+      // wrong-direction auto-advance when the queue was loaded out of
+      // order (e.g. when entering AudioPage from the mini-player overlay
+      // without explicit queueEpisodes, where storage order is always
+      // newest-first regardless of the user's sort choice).
+      _realignQueueToSortPref(completedItem);
 
       final startNextIndex = _currentIndex + 1;
       if (_episodes.isEmpty || startNextIndex >= _episodes.length) {
@@ -856,6 +1043,11 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
             if (rawMs is String) return int.tryParse(rawMs) ?? 0;
             return 0;
           })();
+
+      _cacheLog(
+        'EpisodeCompleted advancing: targetIdx=$targetIndex '
+        'next="${nextItem.title}" resumeMs=$resumeMs',
+      );
 
       await playEpisode(
         nextItem,
@@ -977,6 +1169,12 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     }
 
     _currentIndex = initialIndex.clamp(0, _episodes.length - 1);
+    final titles = _episodes
+        .map((e) => _toMediaItem(e)?.title ?? '<bad>')
+        .toList(growable: false);
+    _cacheLog(
+      'setEpisodeQueue: idx=$_currentIndex/${_episodes.length} titles=$titles',
+    );
     queue.add(_episodes.map(_toMediaItem).whereType<MediaItem>().toList());
   }
 
@@ -1034,6 +1232,13 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     } else if (_currentIndex < 0 || _currentIndex >= _episodes.length) {
       _currentIndex = 0;
     }
+
+    final syncedTitles = _episodes
+        .map((e) => _toMediaItem(e)?.title ?? '<bad>')
+        .toList(growable: false);
+    _cacheLog(
+      'syncEpisodeQueuePreservingCurrent: idx=$_currentIndex/${_episodes.length} titles=$syncedTitles',
+    );
 
     queue.add(_episodes.map(_toMediaItem).whereType<MediaItem>().toList());
   }
@@ -1277,12 +1482,31 @@ class MediaControlOverlay extends StatelessWidget {
       };
     }
 
+    // Build a sorted queue per the user's persisted sort preference so
+    // auto-advance from this entry point goes in the visible direction
+    // (rather than falling back to storage order, which is newest-first).
+    final feedUrl = (matchedPodcast['feedUrl'] ?? '').toString();
+    List<Map<String, dynamic>>? queueEpisodes;
+    if (feedUrl.isNotEmpty) {
+      final episodes =
+          (matchedPodcast['episodes'] as List<dynamic>? ?? const [])
+              .whereType<Map>()
+              .map((ep) => Map<String, dynamic>.from(ep))
+              .toList();
+      if (episodes.isNotEmpty) {
+        final sortPref = podcastState.episodeSortForPodcast(feedUrl);
+        podcastState._sortEpisodesByPref(episodes, sortPref);
+        queueEpisodes = episodes;
+      }
+    }
+
     _appNavigatorKey.currentState?.pushNamed(
       '/audio',
       arguments: {
         'podcast': matchedPodcast,
         'episode': matchedEpisode,
         'play': false,
+        if (queueEpisodes != null) 'queueEpisodes': queueEpisodes,
       },
     );
   }
@@ -1812,6 +2036,12 @@ class PodcastAppState extends ChangeNotifier {
     }
 
     final audioUrl = (episode['audioUrl'] ?? '').toString();
+    final feedUrlStr = (podcast['feedUrl'] ?? '').toString();
+    final pubDateMs =
+        _parseEpisodeDate(episode['pubDate'])?.millisecondsSinceEpoch ?? 0;
+    final episodeSortPref = feedUrlStr.isNotEmpty
+        ? episodeSortForPodcast(feedUrlStr)
+        : 'newest';
 
     return MediaItem(
       id: audioUrl,
@@ -1824,11 +2054,14 @@ class PodcastAppState extends ChangeNotifier {
           ? Duration(milliseconds: durationMs)
           : null,
       extras: {
-        'feedUrl': (podcast['feedUrl'] ?? '').toString(),
+        'feedUrl': feedUrlStr,
         'lastPositionMs': _readInt(episode['lastPositionMs']),
         'played': (episode['played'] ?? false) == true,
         'localAudioPath': (episode['localAudioPath'] ?? '').toString(),
         'autoCachedAudio': (episode['autoCachedAudio'] ?? false) == true,
+        'pubDateMs': pubDateMs,
+        'episodeSortPref': episodeSortPref,
+        'title': (episode['title'] ?? 'Untitled').toString(),
       },
     );
   }
@@ -6366,6 +6599,14 @@ class _AudioPageState extends State<AudioPage> {
       }
     }
 
+    final feedUrlStr = (podcast['feedUrl'] ?? '').toString();
+    final pubDateMs =
+        _parseEpisodeDate(episode['pubDate'])?.millisecondsSinceEpoch ?? 0;
+    final episodeSortPref =
+        (feedUrlStr.isNotEmpty && _podcastState != null)
+        ? _podcastState!.episodeSortForPodcast(feedUrlStr)
+        : 'newest';
+
     return MediaItem(
       id: episode['audioUrl'] ?? '',
       album: (episode['podcastTitle'] ?? podcast['title'] ?? 'Podcast')
@@ -6381,11 +6622,14 @@ class _AudioPageState extends State<AudioPage> {
       extras: {
         'lastPositionMs': episode['lastPositionMs'] ?? 0,
         'played': episode['played'] ?? false,
-        'feedUrl': podcast['feedUrl'] ?? '',
+        'feedUrl': feedUrlStr,
         'podcastTitle':
             episode['podcastTitle'] ?? podcast['title'] ?? 'Podcast',
         'localAudioPath': episode['localAudioPath'] ?? '',
         'autoCachedAudio': episode['autoCachedAudio'] ?? false,
+        'pubDateMs': pubDateMs,
+        'episodeSortPref': episodeSortPref,
+        'title': (episode['title'] ?? 'Untitled').toString(),
       },
     );
   }
