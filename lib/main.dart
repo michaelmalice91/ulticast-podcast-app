@@ -1004,6 +1004,14 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
       // newest-first regardless of the user's sort choice).
       _realignQueueToSortPref(completedItem);
 
+      // [DIAG combined-queue] temporary: full queue snapshot at completion
+      developer.log(
+        '[DIAG][completed] current=${completedItem?.id}|${completedItem?.extras?['feedUrl']} '
+        'queueLen=${_episodes.length} '
+        'queue=${_episodes.map((ep) { final m = _toMediaItem(ep); return m == null ? 'NULL' : '${m.id}|${m.extras?['feedUrl']}|played=${m.extras?['played']}'; }).join(' ;; ')}',
+        name: 'LocalCache',
+      );
+
       final startNextIndex = _currentIndex + 1;
       if (_episodes.isEmpty || startNextIndex >= _episodes.length) {
         await stop();
@@ -1020,6 +1028,11 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
         if (!_isMarkedPlayed(candidate)) {
           break;
         }
+        // [DIAG combined-queue] temporary
+        developer.log(
+          '[DIAG][completed] skipping played: ${candidate.id}|${candidate.extras?['feedUrl']}',
+          name: 'LocalCache',
+        );
         targetIndex++;
       }
 
@@ -1153,6 +1166,12 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     List<MediaItem> episodes, {
     int initialIndex = 0,
   }) async {
+    // [DIAG combined-queue] temporary
+    developer.log(
+      '[DIAG][setEpisodeQueue] n=${episodes.length} initialIndex=$initialIndex '
+      'items=${episodes.map((m) => '${m.id}|${m.extras?['feedUrl']}|played=${m.extras?['played']}').join(' ;; ')}',
+      name: 'LocalCache',
+    );
     _episodes = List<dynamic>.from(episodes);
     _savedPositionsMs.clear();
     for (final item in episodes) {
@@ -1449,20 +1468,53 @@ class MediaControlOverlay extends StatelessWidget {
     Map<String, dynamic>? matchedPodcast;
     Map<String, dynamic>? matchedEpisode;
 
-    for (final podcast in podcastState.podcasts.values) {
-      final episodes = (podcast['episodes'] as List<dynamic>? ?? const []);
-      for (final ep in episodes) {
-        if (ep is! Map) continue;
-        final episodeMap = Map<String, dynamic>.from(ep);
-        final audioUrl = (episodeMap['audioUrl'] ?? '').toString();
-        if (audioUrl == currentItem.id) {
-          matchedPodcast = podcast;
-          matchedEpisode = episodeMap;
-          break;
+    // Prefer the podcast whose own feedUrl matches the item's feedUrl
+    // (e.g. a combined-feed title). Combined episodes are copies that share
+    // the source feed's audioUrl, so a blind audioUrl scan can match the
+    // source feed first and build a single-feed queue.
+    final playingFeedUrl = (currentItem.extras?['feedUrl'] ?? '').toString();
+    if (playingFeedUrl.isNotEmpty) {
+      for (final podcast in podcastState.podcasts.values) {
+        final feedUrl = (podcast['feedUrl'] ?? '').toString();
+        if (feedUrl != playingFeedUrl) continue;
+        final episodes = (podcast['episodes'] as List<dynamic>? ?? const []);
+        for (final ep in episodes) {
+          if (ep is! Map) continue;
+          final episodeMap = Map<String, dynamic>.from(ep);
+          if ((episodeMap['audioUrl'] ?? '').toString() == currentItem.id) {
+            matchedPodcast = podcast;
+            matchedEpisode = episodeMap;
+            break;
+          }
         }
+        if (matchedEpisode != null) break;
       }
-      if (matchedEpisode != null) break;
     }
+
+    if (matchedEpisode == null) {
+      for (final podcast in podcastState.podcasts.values) {
+        final episodes = (podcast['episodes'] as List<dynamic>? ?? const []);
+        for (final ep in episodes) {
+          if (ep is! Map) continue;
+          final episodeMap = Map<String, dynamic>.from(ep);
+          final audioUrl = (episodeMap['audioUrl'] ?? '').toString();
+          if (audioUrl == currentItem.id) {
+            matchedPodcast = podcast;
+            matchedEpisode = episodeMap;
+            break;
+          }
+        }
+        if (matchedEpisode != null) break;
+      }
+    }
+
+    // [DIAG combined-queue] temporary
+    developer.log(
+      '[DIAG][miniplayer.open] playing=${currentItem.id}|${currentItem.extras?['feedUrl']} '
+      'matchedPodcast=${matchedPodcast?['feedUrl'] ?? 'NONE'} '
+      'matchedEpisodeCount=${matchedPodcast == null ? -1 : (matchedPodcast['episodes'] as List).length}',
+      name: 'LocalCache',
+    );
 
     if (matchedPodcast == null || matchedEpisode == null) {
       final fallbackEpisode = {
@@ -2184,6 +2236,15 @@ class PodcastAppState extends ChangeNotifier {
       );
     }
 
+    // [DIAG combined-queue] temporary
+    developer.log(
+      '[DIAG][restore] preferredFeedUrl=$preferredFeedUrl '
+      'inPodcasts=${_podcasts.containsKey(preferredFeedUrl)} '
+      'foundPodcast=${foundPodcast?['feedUrl']} '
+      'episodeCount=${foundPodcast == null ? -1 : (foundPodcast['episodes'] as List).length}',
+      name: 'LocalCache',
+    );
+
     await handler.restorePausedEpisode(
       itemToRestore,
       initialPosition: positionMs > 0
@@ -2207,6 +2268,12 @@ class PodcastAppState extends ChangeNotifier {
             .where((item) => item.id.isNotEmpty)
             .toList(growable: false);
         await handler.syncEpisodeQueuePreservingCurrent(mediaItems);
+        // [DIAG combined-queue] temporary
+        developer.log(
+          '[DIAG][restore] queue rebuilt: n=${mediaItems.length} '
+          'items=${mediaItems.map((m) => '${m.id}|${m.extras?['feedUrl']}|played=${m.extras?['played']}').join(' ;; ')}',
+          name: 'LocalCache',
+        );
       }
     }
   }
@@ -6756,6 +6823,17 @@ class _AudioPageState extends State<AudioPage> {
             .where((item) => item.id.isNotEmpty)
             .toList();
 
+        // [DIAG combined-queue] temporary
+        developer.log(
+          '[DIAG][AudioPage.init] podcast=${currentPodcast!['title']} '
+          'feedUrl=${currentPodcast!['feedUrl']} '
+          'sourceFeedUrls=${currentPodcast!['sourceFeedUrls']} '
+          'episodes=${episodes.length} mediaItems=${mediaItems.length} '
+          'initialIndex=$currentIndex '
+          'firstItems=${mediaItems.take(5).map((m) => '${m.id}|${m.extras?['feedUrl']}').join(' ;; ')}',
+          name: 'LocalCache',
+        );
+
         await _audioHandler.setEpisodeQueue(
           mediaItems,
           initialIndex: currentIndex,
@@ -6923,7 +7001,9 @@ class _AudioPageState extends State<AudioPage> {
               builder: (context, snapshot) {
                 final mediaItem = snapshot.data?.mediaItem;
                 return Text(
-                  episode?['description'] ?? '',
+                  currentEpisode?['description'] ??
+                      episode?['description'] ??
+                      '',
                   textAlign: TextAlign.center,
                   softWrap: true,
                   maxLines: 6,
